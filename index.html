@@ -325,7 +325,8 @@ details.fold>div{padding-bottom:18px;display:flex;flex-direction:column;gap:12px
   .tri{grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-areas:"a c" "b b"}
   .tri>.a{grid-area:a}.tri>.b{grid-area:b}.tri>.c{grid-area:c}
 }
-}
+.sitefoot{max-width:720px;margin:0 auto;padding:0 20px 96px;margin-top:-100px;text-align:center;color:var(--muted);font-size:.85rem;display:flex;flex-direction:column;gap:4px}
+.sitefoot a{color:var(--accent);font-weight:600}
 .micbanner{position:fixed;left:12px;right:12px;top:72px;z-index:60;max-width:640px;margin:0 auto;background:var(--surface);border:2px solid var(--bad);border-radius:16px;padding:14px 16px;box-shadow:0 8px 28px rgba(0,0,0,.2);display:flex;flex-direction:column;gap:10px}
 .micbanner p{font-weight:600}
 </style>
@@ -440,6 +441,7 @@ details.fold>div{padding-bottom:18px;display:flex;flex-direction:column;gap:12px
   <div class="card" id="pf-invite"></div>
 </section>
 </main>
+<footer class="sitefoot"><p>VibraVoice 12D Tutor™ · Fermín Bosquez Mc Kenzie · Panamá</p><p><a href="https://ferminbosquezmc-debug.github.io/vibravoice/" target="_blank" rel="noopener">Sitio web: ferminbosquezmc-debug.github.io/vibravoice</a></p><p><a href="mailto:ferminbosquezmc@gmail.com">ferminbosquezmc@gmail.com</a> · <a href="tel:+50768346940">+507 6834-6940</a></p></footer>
 
 <nav class="tabs" aria-label="Secciones"><div class="tabs-in">
   <a href="#inicio" data-v="inicio"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg><span>Inicio</span></a>
@@ -1716,7 +1718,7 @@ function renderData(){
   const conf=h("div",{class:"row",hidden:true},h("span",{class:"small"},"¿Borrar todo tu progreso?"),h("button",{class:"btn sm",style:"color:var(--bad)",onclick:async()=>{clearTimeout(CLOUD.pushT);CLOUD.ready=false;try{if(CLOUD.ref)await CLOUD.ref.delete()}catch(e){}try{localStorage.removeItem(KEY)}catch(e){}location.reload()}},"Sí, borrar"),h("button",{class:"btn sm ghost",onclick:()=>conf.hidden=true},"Cancelar"));
   el.append(backupBox());
   el.append(h("div",{class:"row"},h("button",{class:"btn sm ghost",onclick:()=>conf.hidden=false},"Reiniciar programa")),conf,
-    h("p",{class:"disclaimer"},"VibraVoice 12D Tutor™ · Fermín Bosquez Mc Kenzie · +507 6834-6940 · ferminbosquezmc@gmail.com. Uso educativo y complementario; no sustituye evaluación médica, auditiva ni fonoaudiológica."));
+    h("p",{class:"disclaimer"},"VibraVoice 12D Tutor™ · Fermín Bosquez Mc Kenzie · +507 6834-6940 · ferminbosquezmc@gmail.com · ferminbosquezmc-debug.github.io/vibravoice. Uso educativo y complementario; no sustituye evaluación médica, auditiva ni fonoaudiológica."));
 }
 
 
@@ -1772,7 +1774,7 @@ async function studentPDF(st,name){
   const maps=st.maps||[],m=maps[maps.length-1],vs=vibraScore(st),M2=metrics(st),log=st.log||{},days=st.days||{};
   let y=0;
   const head=()=>{doc.setFillColor(...OR);doc.rect(0,0,W,6,"F");};
-  const foot=()=>{doc.setFontSize(7.5);doc.setTextColor(...GR);doc.text("VibraVoice 12D Tutor™ · Fermín Bosquez Mc Kenzie · Panamá · +507 6834-6940 · ferminbosquezmc@gmail.com",W/2,272,{align:"center"});
+  const foot=()=>{doc.setFontSize(7.5);doc.setTextColor(...GR);doc.text("VibraVoice 12D Tutor™ · Fermín Bosquez Mc Kenzie · Panamá · +507 6834-6940 · ferminbosquezmc@gmail.com · ferminbosquezmc-debug.github.io/vibravoice",W/2,272,{align:"center"});
     doc.text("Uso educativo y complementario; no sustituye evaluación médica, auditiva ni fonoaudiológica.",W/2,276,{align:"center"})};
   const need=hgt=>{if(y+hgt>264){foot();doc.addPage();head();y=16}};
   head();

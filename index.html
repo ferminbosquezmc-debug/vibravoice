@@ -240,6 +240,30 @@ textarea{min-height:70px;resize:vertical}
 .disclaimer{font-size:.8rem;color:var(--muted)}
 .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(84px + env(safe-area-inset-bottom,0px));background:var(--fg);color:var(--bg);padding:10px 16px;border-radius:12px;font-size:.9rem;z-index:20;max-width:calc(100% - 32px)}
 @media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
+
+/* Mejoras: camino guiado, módulos con íconos, programa legible, ayudas visuales */
+.path{display:flex;flex-direction:column;gap:10px}
+.path .st{display:grid;grid-template-columns:44px minmax(0,1fr) 20px;gap:12px;align-items:center;border:1px solid var(--line);border-radius:16px;padding:12px 14px;text-decoration:none;color:inherit;background:var(--surface);min-height:68px}
+.path .st .n{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-weight:700;background:var(--surface2);color:var(--muted)}
+.path .st.now{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 22%,transparent)}
+.path .st.now .n{background:var(--accent);color:var(--accent-ink)}
+.path .st.done .n{background:var(--good);color:#fff}
+.path .st b{display:block;font-size:1.05rem}
+.path .st small{color:var(--muted);font-size:.85rem}
+.path .st .go{color:var(--accent);font-size:1.4rem;text-align:right}
+details.fold{border:1px solid var(--line);border-radius:18px;background:var(--surface);padding:0 20px}
+details.fold>summary{cursor:pointer;min-height:52px;display:flex;align-items:center;font-weight:600;list-style:none}
+details.fold>summary::-webkit-details-marker{display:none}
+details.fold>summary::after{content:"+";margin-left:auto;color:var(--accent);font-size:1.5rem;line-height:1}
+details.fold[open]>summary::after{content:"\2013"}
+details.fold>div{padding-bottom:18px;display:flex;flex-direction:column;gap:12px}
+.mod .ic{width:26px;height:26px;color:var(--accent);margin-bottom:4px;flex:none}
+.mod[aria-pressed="true"] .ic{color:var(--accent-ink)}
+.day .acts{display:flex;gap:6px;flex-wrap:nowrap}
+@media (max-width:560px){.day{grid-template-columns:32px minmax(0,1fr)}.day .acts{grid-column:2}}
+.rv{display:block;width:100%;height:auto}
+.rv text{font-family:var(--body)}
+.copybox{display:flex;flex-direction:column;gap:10px;border:1px dashed var(--line);border-radius:14px;padding:14px}
 </style>
 
 </head>
@@ -253,32 +277,27 @@ textarea{min-height:70px;resize:vertical}
 <!-- ===================== INICIO ===================== -->
 <section class="view" id="v-inicio">
   <div class="hero">
-    <img class="hero-logo" id="hero-logo" alt="VibraVoice 12D Tutor" width="220" height="220">
+    <img class="hero-logo" id="hero-logo" alt="VibraVoice 12D Tutor" width="160" height="160" style="width:min(150px,42vw)">
     <div class="eyebrow">Tutor vocal neurovibracional</div>
-    <h1>Cada nota es una dimensión. <em>Cada voz tiene un mapa.</em></h1>
-    <p class="lead">Entrena afinación, intervalos, escalas y armonía con tonos de referencia, el mapa de 12 dimensiones tonales y el análisis de tus grabaciones.</p>
-    <div class="row">
-      <a class="btn primary" href="#vocalmap">Crear mi mapa vocal</a>
-      <a class="btn" href="#entrenar">Entrenar ahora</a>
-    </div>
+    <h1>Tu voz tiene un mapa. <em>Vamos a descubrirlo.</em></h1>
+    <p class="lead">Tres pasos. Diez minutos al día.</p>
   </div>
-  <div class="card" id="home-status"></div>
-  <div class="card">
-    <h2>La secuencia del método</h2>
-    <p class="muted">Cada ejercicio sigue el mismo orden. La nota se canta dos veces: primero en la mente, luego en la voz.</p>
+  <div class="path" id="home-path"></div>
+  <div class="card" id="home-status" hidden></div>
+  <details class="fold"><summary>La secuencia del método</summary><div>
     <div class="seq">
       <div><small>01</small>Escuchar</div><div><small>02</small>Sentir</div><div><small>03</small>Imaginar</div>
       <div><small>04</small>Respirar</div><div><small>05</small>Cantar</div><div><small>06</small>Verificar</div>
     </div>
-  </div>
-  <div class="card">
-    <h3>Cómo usar el tutor</h3>
+    <p class="muted small">Cada nota se canta dos veces: primero en la mente, luego en la voz.</p>
+  </div></details>
+  <details class="fold"><summary>Cómo usar el tutor</summary><div>
     <div class="week small">
-      <p><b>1.</b> Usa auriculares y un lugar tranquilo. Toca un botón para escuchar cualquier tono.</p>
-      <p><b>2.</b> Para medir tu voz, toca «Grabar con micrófono» y permite el acceso. En Entrenar → Afinador ves tu nota en vivo mientras cantas.</p>
-      <p><b>3.</b> Sigue el programa de 30 días y revisa tu progreso cada semana.</p>
+      <p><b>1.</b> Usa auriculares y un lugar tranquilo.</p>
+      <p><b>2.</b> Toca «Grabar con micrófono» y permite el acceso.</p>
+      <p><b>3.</b> Sigue el programa de 30 días y mira tu progreso cada semana.</p>
     </div>
-  </div>
+  </div></details>
   <p class="disclaimer">Método creado por Fermín Bosquez Mc Kenzie · Panamá. Uso educativo; no sustituye evaluación médica, auditiva ni fonoaudiológica.</p>
 </section>
 
@@ -287,7 +306,7 @@ textarea{min-height:70px;resize:vertical}
   <div class="hero">
     <div class="eyebrow">Diagnóstico automático</div>
     <h1>VocalMap 12D™</h1>
-    <p class="lead">Tres capturas para convertir tu voz en un mapa legible. Graba unos 5 segundos en cada paso, con la sílaba «ma».</p>
+    <p class="lead">Tres grabaciones de 5 segundos con la sílaba «ma».</p>
   </div>
   <div class="card" id="vm-capture"></div>
   <div class="card" id="vm-result"></div>
@@ -314,7 +333,7 @@ textarea{min-height:70px;resize:vertical}
   <div class="card" id="map-detail"></div>
   <svg class="wheel" id="map-wheel" viewBox="0 0 360 360" role="group" aria-label="Rueda de las 12 notas"></svg>
   <div class="dims" id="dims"></div>
-  <p class="muted small">La octava cambia la profundidad: los graves se sienten amplios y difusos; los agudos, más superficiales y focalizados. Cada nota conserva su zona y su trayectoria en cualquier octava.</p>
+  <details class="fold"><summary>¿Qué cambia con la octava?</summary><div><p class="muted small">Los graves se sienten amplios y difusos; los agudos, más superficiales y focalizados. Cada nota conserva su zona y su trayectoria en cualquier octava.</p></div></details>
   <p class="disclaimer">El mapa craneal es una figura pedagógica para organizar la percepción y la memoria vocal; no es una descripción anatómica.</p>
 </section>
 
@@ -323,7 +342,7 @@ textarea{min-height:70px;resize:vertical}
   <div class="hero">
     <div class="eyebrow">Protocolo</div>
     <h1>Programa de 30 días</h1>
-    <p class="lead">Toca un día para abrir su ejercicio. Marca el círculo al terminarlo y llena tu registro diario.</p>
+    <p class="lead">Toca «Abrir» en cada día. Marca el círculo al terminar.</p>
   </div>
   <div class="card" id="plan-sum"></div>
   <div id="plan-weeks" class="view" style="gap:16px"></div>
@@ -745,33 +764,54 @@ function headCanvas(cv){
 /* ============ VISTA: INICIO ============ */
 function renderHome(){
   const old=document.getElementById("home-tasks");if(old)old.remove();
-  const tk=homeTasks();if(tk){tk.id="home-tasks";$("#home-status").before(tk)}
+  const tk=homeTasks();if(tk){tk.id="home-tasks";$("#home-path").before(tk)}
   const el=$("#home-status");el.innerHTML="";const m=lastMap();const done=Object.values(S.days).filter(Boolean).length;
   const next=DAYS.find(d=>!S.days[d[0]]);
-  if(!m){el.append(h("div",{class:"eyebrow"},"Empieza aquí"),h("h3",{},"Todavía no tienes mapa vocal"),
-    h("p",{class:"muted"},"El Día 1 crea tu VocalMap: tres grabaciones cortas que definen tu rango, tu nota base y tu ruta de entrenamiento."),
-    h("div",{class:"row"},h("a",{class:"btn primary",href:"#vocalmap"},"Hacer el diagnóstico")));return}
+  const trained=Object.keys(S.days).some(k=>S.days[k]&&+k!==1&&+k!==28);
+  /* Camino en tres pasos: el primero pendiente es el actual */
+  const steps=[
+    {n:"1",t:"Crea tu mapa vocal",s:"3 grabaciones de 5 segundos",href:"#vocalmap",ok:!!m},
+    {n:"2",t:"Entrena un ejercicio",s:next?"Hoy: Día "+next[0]+" · "+next[1]:"Programa completo",href:"#plan",ok:trained,fn:next&&m?()=>openDay(next):null},
+    {n:"3",t:"Mira tu progreso",s:"VibraScore y certificado",href:"#progreso",ok:done>=30}
+  ];
+  const cur=steps.findIndex(s=>!s.ok);
+  const path=$("#home-path");path.innerHTML="";
+  steps.forEach((s,i)=>{
+    const a=h("a",{class:"st"+(s.ok?" done":i===cur?" now":""),href:s.href},
+      h("span",{class:"n"},s.ok?"✓":s.n),h("span",{},h("b",{},s.t),h("small",{},s.s)),h("span",{class:"go","aria-hidden":"true"},"›"));
+    if(s.fn&&i===cur)a.addEventListener("click",e=>{e.preventDefault();s.fn()});
+    path.append(a)});
+  if(!m){el.hidden=true;return}
+  el.hidden=false;
   el.append(h("div",{class:"eyebrow"},"Tu mapa vocal · "+m.date),h("h3",{},m.voice),
     h("div",{class:"grid2"},
       h("a",{class:"stat",href:"#progreso",style:"text-decoration:none;color:inherit;border:1px solid var(--accent)"},h("span",{class:"k"},"VibraScore™"),h("span",{class:"v",style:"color:var(--accent)"},(vibraScore().score??"—")+" / 100")),
       h("div",{class:"stat"},h("span",{class:"k"},"Programa"),h("span",{class:"v"},done+"/30")),
       h("div",{class:"stat"},h("span",{class:"k"},"Rango cómodo"),h("span",{class:"v"},nm(m.lo)+"–"+nm(m.hi))),
-      h("div",{class:"stat"},h("span",{class:"k"},"Nota base"),h("span",{class:"v"},nm(m.base)))),
-    next?h("div",{class:"row"},h("button",{class:"btn primary",onclick:()=>openDay(next)},"Continuar: Día "+next[0]+" · "+next[1])):h("p",{},"Completaste el programa."));
+      h("div",{class:"stat"},h("span",{class:"k"},"Nota base"),h("span",{class:"v"},nm(m.base)))));
 }
 
 /* ============ VISTA: VOCALMAP ============ */
 let vmTmp={};
 const VM_STEPS=[
- {k:"comoda",t:"Nota cómoda",d:"Respira y sostén una nota cómoda con «ma» durante 5 segundos, sin forzar."},
- {k:"grave",t:"Nota grave",d:"Desciende despacio hasta la nota más grave que salga limpia y sostenla."},
- {k:"aguda",t:"Nota aguda",d:"Sube despacio hasta la nota más aguda cómoda, sin gritar, y sostenla."}
+ {k:"comoda",t:"Nota cómoda",d:"Sostén una nota cómoda con «ma». Sin forzar."},
+ {k:"grave",t:"Nota grave",d:"Baja despacio hasta tu nota más grave limpia y sostenla."},
+ {k:"aguda",t:"Nota aguda",d:"Sube despacio hasta tu nota aguda cómoda. Sin gritar."}
 ];
+/* Ayuda visual: dónde estás dentro de tu rango */
+function rangeViz(cur){
+  const P={grave:[44,"Grave"],comoda:[150,"Cómoda"],aguda:[256,"Aguda"]};
+  let s='<svg class="rv" viewBox="0 0 300 92" role="img" aria-label="Tu rango de voz: grave, cómoda y aguda"><defs><linearGradient id="rvg" x1="0" x2="1"><stop offset="0" stop-color="var(--teal)"/><stop offset="1" stop-color="var(--accent)"/></linearGradient></defs><rect x="20" y="30" width="260" height="10" rx="5" fill="url(#rvg)" opacity=".35"/>';
+  for(const k of ["grave","comoda","aguda"]){const [x,l]=P[k],on=k===cur,ok=!!vmTmp[k];
+    s+='<circle cx="'+x+'" cy="35" r="'+(on?15:11)+'" fill="'+(on?"var(--accent)":ok?"var(--good)":"var(--surface)")+'" stroke="'+(on?"var(--accent)":ok?"var(--good)":"var(--line)")+'" stroke-width="2"/>'
+     +'<text x="'+x+'" y="'+(on?40:39)+'" text-anchor="middle" font-size="'+(on?14:12)+'" font-weight="700" fill="'+(on||ok?"#fff":"var(--muted)")+'">'+(ok&&!on?"✓":"♪")+'</text>'
+     +'<text x="'+x+'" y="72" text-anchor="middle" font-size="13" font-weight="'+(on?700:500)+'" fill="'+(on?"var(--accent)":"var(--muted)")+'">'+l+'</text>'}
+  return h("div",{html:s})}
 let vmStep=0;
 function renderVMCapture(){
   const el=$("#vm-capture");el.innerHTML="";const st=VM_STEPS[vmStep];
   el.append(h("div",{class:"steps-prog"},VM_STEPS.map((_,i)=>h("i",{class:i<=vmStep?"on":""}))),
-    h("div",{class:"small muted"},"Paso "+(vmStep+1)+" de 3"),h("h2",{},st.t),h("p",{class:"muted"},st.d));
+    h("div",{class:"small muted"},"Paso "+(vmStep+1)+" de 3"),h("h2",{},st.t),rangeViz(st.k),h("p",{class:"muted"},st.d));
   const prev=vmTmp[st.k];
   if(prev)el.append(h("div",{class:"result"},h("b",{},"Detectado: "+nm(prev.note)+" · "+mf(prev.med).toFixed(1)+" Hz"),h("span",{class:"small muted"},"Estabilidad ±"+Math.round(prev.mad)+" cents · "+prev.voicedSec.toFixed(1)+" s con voz")));
   el.append(uploader("Captura: "+st.t.toLowerCase(),async(an,f,stEl)=>{
@@ -882,10 +922,23 @@ function runSequence(midi){
 const MODS=[["tun","Afinador","En vivo"],["cal","Calentar","Medio tono"],["nota","Notas","Sostener"],["resp","Respirar","Ciclos"],["int","Intervalos","Viajar"],["quiz","Quiz","Reconocer"],["esc","Escalas","Rutas"],["arp","Arpegios","Acordes"],["ritmo","Ritmo","Pulso"],["arm","Armonía","Coro virtual"],["rep","Repertorio","Canción"]];
 const modState={cur:"tun",nota:"base",int:4,esc:"mayor",arp:"mayor",arm:"basico",armVoice:"S",asc:"ambas",tempo:72,ritmoP:"negras",ritmoN:"base"};
 function rootMidi(){const p=prof();return p.base}
+const MOD_IC={
+ tun:'<path d="M3 12h3l2-6 3 12 3-9 2 3h5"/>',
+ cal:'<path d="M12 3c3 4 5 6 5 9a5 5 0 0 1-10 0c0-3 2-5 5-9z"/>',
+ nota:'<path d="M9 18V6l10-2v12"/><circle cx="7" cy="18" r="2.5"/><circle cx="17" cy="16" r="2.5"/>',
+ resp:'<path d="M3 8h10a3 3 0 1 0-3-3M3 12h14a3 3 0 1 1-3 3M3 16h7"/>',
+ int:'<path d="M3 19h5v-5h5V9h5V4"/>',
+ quiz:'<circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.7.4-1 1-1 1.7M12 17h.01"/>',
+ esc:'<path d="M3 20h4v-4h4v-4h4V8h4V4"/><path d="M3 20h18"/>',
+ arp:'<path d="M6 4v16M10 6v14M14 8v12M18 10v10"/>',
+ ritmo:'<path d="M8 21l2-16h4l2 16zM12 15l4-8"/>',
+ arm:'<circle cx="9" cy="8" r="3"/><path d="M3 20c.5-3 3-5 6-5s5.5 2 6 5"/><circle cx="17" cy="9" r="2.4"/><path d="M16 15c3 0 5 1.8 5.5 5"/>',
+ rep:'<path d="M9 18V6l10-2v12M9 11l10-2"/><circle cx="7" cy="18" r="2.5"/><circle cx="17" cy="16" r="2.5"/>'
+};
 function renderEntrenar(){
   const p=prof();$("#tr-lead").textContent=lastMap()?"Ejercicios ajustados a tu voz: "+p.voice+", nota base "+nm(p.base)+", rango "+nm(p.lo)+"–"+nm(p.hi)+".":"Sin mapa vocal aún: los ejercicios parten de Do4. Haz el diagnóstico para ajustarlos a tu voz.";
   const mods=$("#mods");mods.innerHTML="";
-  MODS.forEach(([k,n,s])=>mods.append(h("button",{class:"mod","aria-pressed":modState.cur===k?"true":"false",onclick:()=>{stopAll();modState.cur=k;renderEntrenar()}},h("b",{},n),h("span",{},s))));
+  MODS.forEach(([k,n,s])=>mods.append(h("button",{class:"mod","aria-pressed":modState.cur===k?"true":"false",onclick:()=>{stopAll();modState.cur=k;renderEntrenar()}},h("div",{html:'<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+(MOD_IC[k]||"")+'</svg>'}),h("b",{},n),h("span",{},s))));
   const body=$("#mod-body");body.innerHTML="";
   ({tun:mTuner,cal:mCal,nota:mNota,resp:mResp,int:mInt,quiz:mQuiz,esc:mEsc,arp:mArp,ritmo:mRitmo,arm:mArm,rep:mRep})[modState.cur](body);
 }
@@ -1195,7 +1248,7 @@ function renderPlan(){
     DAYS.filter(d=>d[0]>=s&&d[0]<=e).forEach(d=>{const cb=h("input",{type:"checkbox",class:"chk","aria-label":"Día "+d[0]+" completado",id:"day-"+d[0]});cb.checked=!!S.days[d[0]];
       cb.addEventListener("change",()=>{S.days[d[0]]=cb.checked;save();renderPlan();renderHome()});
       list.append(h("div",{class:"day"},cb,h("div",{class:"t"},h("b",{},"Día "+d[0]+" · "+d[1]),h("small",{},d[2])),
-        h("div",{class:"row",style:"gap:6px;flex-wrap:nowrap"},h("button",{class:"btn sm ghost","aria-label":"Registro del día "+d[0],onclick:()=>{logDay=d[0];renderLog();$("#day-log").scrollIntoView({behavior:"smooth"})}},"Registro"),h("button",{class:"btn sm",onclick:()=>openDay(d)},"Abrir"))))});
+        h("div",{class:"acts"},h("button",{class:"btn sm primary","aria-label":"Abrir el día "+d[0],onclick:()=>openDay(d)},"Abrir"),h("button",{class:"btn sm ghost","aria-label":"Registro del día "+d[0],onclick:()=>{logDay=d[0];renderLog();$("#day-log").scrollIntoView({behavior:"smooth"})}},"Registro"))))});
     c.append(list);wk.append(c)});
   renderLog();
 }
@@ -1344,9 +1397,50 @@ function renderData(){
     h("p",{class:"muted small"},"Tu progreso se guarda en este teléfono y en este navegador. Tu voz se analiza aquí mismo: el audio no se envía a ningún servidor."));
   syncBadge();
   const conf=h("div",{class:"row",hidden:true},h("span",{class:"small"},"¿Borrar todo tu progreso?"),h("button",{class:"btn sm",style:"color:var(--bad)",onclick:async()=>{clearTimeout(CLOUD.pushT);CLOUD.ready=false;try{if(CLOUD.ref)await CLOUD.ref.delete()}catch(e){}try{localStorage.removeItem(KEY)}catch(e){}location.reload()}},"Sí, borrar"),h("button",{class:"btn sm ghost",onclick:()=>conf.hidden=true},"Cancelar"));
+  el.append(backupBox());
   el.append(h("div",{class:"row"},h("button",{class:"btn sm ghost",onclick:()=>conf.hidden=false},"Reiniciar programa")),conf,
     h("p",{class:"disclaimer"},"VibraVoice 12D Tutor™ · Fermín Bosquez Mc Kenzie · +507 6834-6940 · ferminbosquezmc@gmail.com. Uso educativo y complementario; no sustituye evaluación médica, auditiva ni fonoaudiológica."));
 }
+
+
+/* ============ COPIA DE RESPALDO / REVISIÓN (funciona sin cuenta ni internet) ============ */
+function readJSONFile(file){return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>{try{res(JSON.parse(r.result))}catch(e){rej(new Error("json"))}};r.onerror=()=>rej(new Error("read"));r.readAsText(file)})}
+function validBackup(o){return o&&o.app==="vibravoice-12d"&&o.state&&typeof o.state==="object"&&Array.isArray(o.state.maps)&&o.state.days&&typeof o.state.days==="object"}
+function pickJSON(cb){const i=document.createElement("input");i.type="file";i.accept=".json,application/json";i.onchange=async()=>{const f=i.files&&i.files[0];if(!f)return;try{const o=await readJSONFile(f);if(!validBackup(o)){toast("Ese archivo no es una copia de VibraVoice");return}cb(o)}catch(e){toast("No se pudo leer el archivo")}};i.click()}
+function backupBox(){
+  const out=h("div",{class:"copybox"});
+  const msg=h("p",{class:"small muted",role:"status"},"");
+  const slot=h("div",{});
+  out.append(h("b",{},"Copia de tu progreso"),
+    h("p",{class:"muted small"},"Guarda un archivo con tu avance. Sirve para cambiar de teléfono o no perder nada."),
+    h("div",{class:"row"},
+      h("button",{class:"btn sm primary",onclick:async()=>{const d=await getCap("downloads");if(!d){toast("La descarga no está disponible aquí");return}
+        const data={app:"vibravoice-12d",v:1,exportado:new Date().toISOString(),state:JSON.parse(JSON.stringify(S))};
+        try{await d.save({filename:"VibraVoice_copia_"+today()+".json",data:new Blob([JSON.stringify(data)],{type:"application/json"})});toast("Copia guardada")}catch(e){if(!(e&&e.code==="declined"))toast("No se pudo guardar la copia")}}},"Guardar copia"),
+      h("button",{class:"btn sm ghost",onclick:()=>pickJSON(o=>{
+        const st=o.state,dias=Object.values(st.days).filter(Boolean).length;
+        slot.innerHTML="";
+        slot.append(h("div",{class:"row"},h("span",{class:"small"},"Esta copia tiene "+st.maps.length+" mapa(s) y "+dias+" día(s). Reemplazará tu progreso actual."),
+          h("button",{class:"btn sm",style:"color:var(--bad)",onclick:()=>{
+            const base={maps:[],days:{},log:{},scores:{int:[],quiz:[],esc:[],arp:[],arm:[],nota:[],ritmo:[]},name:"",song:{t:"",root:0,mode:"mayor",start:60,steps:{}},spatial:true,vs:[]};
+            S=Object.assign(base,st);S.scores=Object.assign(base.scores,st.scores||{});if(!Array.isArray(S.vs))S.vs=[];
+            save();location.reload()}},"Sí, cargar"),
+          h("button",{class:"btn sm ghost",onclick:()=>slot.innerHTML=""},"Cancelar")))})},"Cargar copia")),
+    slot,msg);
+  const rev=h("div",{class:"copybox",style:"margin-top:12px"});const rs=h("div",{});
+  rev.append(h("b",{},"Revisar la copia de un alumno"),
+    h("p",{class:"muted small"},"Para profesores: abre el archivo que te envió un alumno y mira su avance. No cambia tus datos."),
+    h("div",{class:"row"},h("button",{class:"btn sm ghost",onclick:()=>pickJSON(o=>{
+      const st=o.state,m=(st.maps||[]).slice(-1)[0],vs=vibraScore(st),dias=Object.values(st.days||{}).filter(Boolean).length,nom=st.name||"Alumno";
+      rs.innerHTML="";
+      rs.append(h("div",{class:"grid2",style:"margin-top:10px"},
+        h("div",{class:"stat"},h("span",{class:"k"},"Alumno"),h("span",{class:"v"},nom)),
+        h("div",{class:"stat"},h("span",{class:"k"},"VibraScore™"),h("span",{class:"v"},(vs.score??"—")+" / 100")),
+        h("div",{class:"stat"},h("span",{class:"k"},"Voz"),h("span",{class:"v"},m?m.voice:"Sin mapa")),
+        h("div",{class:"stat"},h("span",{class:"k"},"Rango"),h("span",{class:"v"},m?nm(m.lo)+"–"+nm(m.hi):"—")),
+        h("div",{class:"stat"},h("span",{class:"k"},"Programa"),h("span",{class:"v"},dias+"/30"))),
+        h("div",{class:"row",style:"margin-top:10px"},h("button",{class:"btn sm primary",onclick:e=>downloadSheet(st,nom,e.currentTarget)},"Hoja del alumno (PDF)")))})},"Abrir copia")),rs);
+  const wrap=h("div",{});wrap.append(out,rev);return wrap}
 
 /* ============ HOJA DEL ALUMNO (PDF) ============ */
 let jsPDFp=null;

@@ -293,6 +293,19 @@ details.fold>div{padding-bottom:18px;display:flex;flex-direction:column;gap:12px
   .vm-ctl{gap:8px}.vm-ctl h2{font-size:1.2rem}.vm-ctl>p.muted,.vm-ctl .drop>.small{display:none}
   .vm-ctl .rv{max-height:64px}.vm-ctl .drop{padding:10px}
 }
+/* Tutor en vivo */
+.coach{display:flex;flex-direction:column;gap:10px}
+.cb{display:flex;align-items:center;gap:12px;border-radius:16px;padding:14px 16px;font-weight:700;font-size:1.1rem;line-height:1.25;border:2px solid var(--line);background:var(--surface2);--c:var(--muted);min-height:64px}
+.cb .ci{flex:none;width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--c);color:#fff;font-size:1.25rem}
+.cb.ok{--c:var(--good);border-color:var(--c);background:color-mix(in srgb,var(--c) 16%,var(--surface))}
+.cb.near{--c:var(--warn);border-color:var(--c);background:color-mix(in srgb,var(--c) 16%,var(--surface))}
+.cb.off{--c:var(--bad);border-color:var(--c);background:color-mix(in srgb,var(--c) 14%,var(--surface))}
+.coach .goal{text-align:center;font-weight:600}
+.coach .chips{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}
+.coach .chips .pill.now{outline:2px solid var(--accent)}
+.coach .chips .pill.hit{background:var(--good);color:#fff}
+.coach-grid{display:grid;gap:10px}
+@media (min-width:560px){.coach-grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr);column-gap:20px;align-items:center}}
 </style>
 
 </head>
@@ -975,6 +988,7 @@ const MOD_IC={
  rep:'<path d="M9 18V6l10-2v12M9 11l10-2"/><circle cx="7" cy="18" r="2.5"/><circle cx="17" cy="16" r="2.5"/>'
 };
 function renderEntrenar(){
+  if(coachOff)coachOff();
   const p=prof();$("#tr-lead").textContent=lastMap()?"Ejercicios ajustados a tu voz: "+p.voice+", nota base "+nm(p.base)+", rango "+nm(p.lo)+"–"+nm(p.hi)+".":"Sin mapa vocal aún: los ejercicios parten de Do4. Haz el diagnóstico para ajustarlos a tu voz.";
   const mods=$("#mods");mods.innerHTML="";
   MODS.forEach(([k,n,s])=>mods.append(h("button",{class:"mod","aria-pressed":modState.cur===k?"true":"false",onclick:()=>{stopAll();modState.cur=k;renderEntrenar()}},h("div",{html:'<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+(MOD_IC[k]||"")+'</svg>'}),h("b",{},n),h("span",{},s))));
@@ -996,6 +1010,110 @@ function verifyBlock(label,getExpected,kind,onRes){
     if(onRes)onRes(r,ex);
   },()=>Math.round(clamp(getExpected().length*1.7+2,5,30))),out];
 }
+
+/* ============ TUTOR EN VIVO: te dice si lo estás haciendo bien ============ */
+let coachOff=null;
+function liveCoach(o){
+  const mode=o.mode||"one",need=o.need||(mode==="seq"?.7:mode==="any"?1:3);
+  let hist=[],held=0,idx=0,last=0,done=false,key="",hits=[],un=null,tot=0;
+  const badge=h("div",{class:"cb","aria-live":"polite",role:"status"},h("span",{class:"ci","aria-hidden":"true"},"●"),h("span",{class:"ct"},"Activa el indicador y canta «ma»"));
+  const set=(cls,ic,tx)=>{badge.className="cb "+cls;badge.firstChild.textContent=ic;badge.lastChild.textContent=tx};
+  const big=h("div",{class:"freq",style:"text-align:center"},"—"),goal=h("div",{class:"goal"},"");
+  const needle=h("div",{class:"tuner",role:"img","aria-label":"Desvío en cents"},h("i"),h("b"));
+  const scale=h("div",{class:"row small mono muted",style:"justify-content:space-between"},h("span",{},"bajo"),h("span",{},"afinada"),h("span",{},"alto"));
+  const bar=h("div",{class:"bar"},h("i",{style:"width:0%"}));
+  const chips=h("div",{class:"chips"});
+  const btn=h("button",{class:"btn primary",type:"button"},"Activar indicador en vivo");
+  const paint=()=>{chips.innerHTML="";if(mode!=="seq")return;o.targets().forEach((m,i)=>chips.append(h("span",{class:"pill "+(i<idx?"hit":i===idx&&un?"now":"")},nm(m))))};
+  const needlePos=(pct,col)=>{needle.lastChild.style.left=pct+"%";needle.lastChild.style.background=col};
+  const reset=()=>{idx=0;held=0;done=false;hits=[];tot=0;bar.firstChild.style.width="0%";paint()};
+  const off=()=>{if(un){un();un=null}if(coachOff===off)coachOff=null;btn.textContent="Activar indicador en vivo";set("idle","●","Indicador en pausa");big.textContent="—";needlePos(50,"var(--muted)");paint()};
+  const finish=(pct,txt)=>{done=true;if(o.kind){S.scores[o.kind].push({ts:Date.now(),pct});save()}toast(txt);try{navigator.vibrate&&navigator.vibrate([40,40,40])}catch(e){}};
+  const frame=p=>{
+    const now=performance.now(),dt=Math.min(.1,(now-last)/1000);last=now;
+    if(mode==="range"){
+      const r=o.range();
+      if(p.midi==null){hist=[];big.textContent="—";set("idle","…",p.rms>.02?"Te escucho, pero no detecto una nota clara":"Canta con «ma», «mi» o vibración de labios");needlePos(50,"var(--muted)");return}
+      hist.push(p.midi);if(hist.length>5)hist.shift();const md=[...hist].sort((a,b)=>a-b)[hist.length>>1],n=Math.round(md);big.textContent=nm(n);
+      const span=r.hi-r.lo||1;needlePos(clamp((md-r.lo)/span*100,2,98),"var(--teal)");
+      if(md>r.hi+.5)set("off","↓","Por encima de tu rango cómodo: no fuerces, baja");
+      else if(md<r.lo-.5)set("off","↑","Por debajo de tu rango cómodo: sube un poco");
+      else if(md>r.hi-1.5||md<r.lo+1.5)set("near","!","Cerca del borde de tu rango: suave y sin tensión");
+      else set("ok","✓","Dentro de tu rango cómodo: sigue así");
+      return}
+    const T=o.targets();const k=T.join(",");if(k!==key){key=k;reset()}
+    if(done&&mode!=="one"){return}
+    if(p.midi==null){hist=[];held=Math.max(0,held-dt);bar.firstChild.style.width=clamp(held/need*100,0,100)+"%";big.textContent="—";needlePos(50,"var(--muted)");
+      set("idle","…",p.rms>.02?"Te escucho, pero no detecto una nota: canta «ma» con voz clara":"Silencio: canta «ma»");return}
+    hist.push(p.midi);if(hist.length>5)hist.shift();const md=[...hist].sort((a,b)=>a-b)[hist.length>>1],n=Math.round(md);
+    let t=mode==="seq"?T[idx]:T[0];
+    if(mode==="any")t=T.reduce((a,b)=>Math.abs(md-nearOct(b,md))<Math.abs(md-nearOct(a,md))?b:a);
+    const ct=(md-nearOct(t,md))*100,ok=Math.abs(ct)<20;
+    big.textContent=nm(n);
+    needlePos(clamp(50+ct/2,2,98),ok?"var(--good)":Math.abs(ct)<40?"var(--warn)":"var(--bad)");
+    if(ok)set("ok","✓","Afinada · "+nm(t)+" ("+(ct>0?"+":"")+Math.round(ct)+" ¢)");
+    else if(Math.abs(ct)<100)set("near",ct>0?"↓":"↑",ct>0?"Estás alto: baja un poco":"Estás bajo: sube un poco");
+    else set("off","✕","Cantas "+NAMES[pc(n)]+": busca "+NAMES[pc(t)]);
+    held=ok?held+dt:Math.max(0,held-dt);if(ok){tot+=Math.abs(ct)*dt;}
+    bar.firstChild.style.width=clamp(held/need*100,0,100)+"%";
+    if(mode==="seq")goal.textContent=idx<T.length?"Ahora canta: "+nm(T[idx])+" ("+(idx+1)+" de "+T.length+")":"";
+    if(held>=need){
+      if(mode==="seq"){hits.push(Math.abs(ct));idx++;held=0;hist=[];bar.firstChild.style.width="0%";try{navigator.vibrate&&navigator.vibrate(30)}catch(e){}paint();
+        if(idx>=T.length){const avg=hits.reduce((a,b)=>a+b,0)/hits.length;set("ok","★","¡Completo! Cantaste las "+T.length+" notas");goal.textContent="";finish(Math.round(clamp(100-avg*1.5,70,100)),"Secuencia completa y afinada")}}
+      else if(mode==="any"){held=0;set("ok","★","¡Muy bien! Nota en el lugar correcto")}
+      else if(!done){set("ok","★","¡Nota sostenida y afinada!");finish(Math.round(clamp(100-Math.abs(ct)*1.5,70,100)),"Nota sostenida y afinada")}
+      else held=need;
+    }
+  };
+  btn.addEventListener("click",async()=>{
+    if(un){off();return}
+    if(!MIC.ok){set("off","✕","El micrófono no está disponible aquí. Abre la app en tu navegador.");return}
+    set("idle","…","Abriendo micrófono…");if(!(await micStart())){set("off","✕",micErrText());return}
+    if(coachOff)coachOff();reset();last=performance.now();hist=[];
+    btn.textContent="Pausar indicador";set("idle","…","Te escucho: canta «ma»");paint();
+    un=micSub(frame);coachOff=off;
+  });
+  const wrap=h("div",{class:"coach"},
+    h("p",{class:"muted small"},o.hint||"Activa el indicador y canta: te diré al instante si estás en la nota."),
+    h("div",{class:"row"},btn),badge,
+    h("div",{class:"coach-grid"},h("div",{},big,goal,chips),h("div",{},mode==="range"?null:needle,mode==="range"?null:scale,mode==="range"?null:h("span",{class:"small muted"},"Tiempo en la nota"),mode==="range"?null:bar)));
+  if(mode==="range"){wrap.lastChild.lastChild.append(needle,h("div",{class:"row small mono muted",style:"justify-content:space-between"},h("span",{},"grave"),h("span",{},"tu rango"),h("span",{},"agudo")))}
+  paint();return wrap;
+}
+function coachCard(o){return card(h("h2",{},"Tutor en vivo"),liveCoach(o))}
+
+/* Respiración: usa el volumen del micrófono para decir si el aire es estable */
+function breathCoach(getPhase){
+  let un=null,rs=[],ok=0,n=0,last=0;
+  const badge=h("div",{class:"cb","aria-live":"polite",role:"status"},h("span",{class:"ci","aria-hidden":"true"},"●"),h("span",{class:"ct"},"Activa el indicador y empieza el ejercicio"));
+  const set=(cls,ic,tx)=>{badge.className="cb "+cls;badge.firstChild.textContent=ic;badge.lastChild.textContent=tx};
+  const lvl=h("div",{class:"bar"},h("i",{style:"width:0%"})),sum=h("p",{class:"small muted"},"");
+  const btn=h("button",{class:"btn primary",type:"button"},"Activar indicador de respiración");
+  const off=()=>{if(un){un();un=null}if(coachOff===off)coachOff=null;btn.textContent="Activar indicador de respiración";set("idle","●","Indicador en pausa");lvl.firstChild.style.width="0%"};
+  btn.addEventListener("click",async()=>{
+    if(un){off();return}
+    if(!MIC.ok){set("off","✕","El micrófono no está disponible aquí. Abre la app en tu navegador.");return}
+    set("idle","…","Abriendo micrófono…");if(!(await micStart())){set("off","✕",micErrText());return}
+    if(coachOff)coachOff();rs=[];ok=0;n=0;btn.textContent="Pausar indicador";set("idle","…","Te escucho");
+    un=micSub(p=>{
+      const ph=getPhase(),r=p.rms;lvl.firstChild.style.width=clamp(r/.08*100,0,100)+"%";
+      rs.push(r);if(rs.length>40)rs.shift();
+      const m=rs.reduce((a,b)=>a+b,0)/rs.length,sd=Math.sqrt(rs.reduce((a,b)=>a+(b-m)*(b-m),0)/rs.length),cv=m>0?sd/m:9;
+      if(ph==="out"){
+        if(m<.004){set("off","✕","No te oigo: exhala «sss» cerca del micrófono")}
+        else if(cv<.45){set("ok","✓","Aire estable: sigue soltándolo parejo");ok++;n++}
+        else{set("near","~","Aire irregular: suéltalo más parejo, sin empujar");n++}
+      }else if(ph==="hold"){
+        if(r>.02)set("near","!","Estás soltando aire: sostén sin escapar");else set("ok","✓","Sostén tranquilo, sin soltar aire")
+      }else if(ph==="in"){
+        if(r>.03)set("near","!","Inhala más suave y en silencio");else set("ok","✓","Inhala suave por la nariz")
+      }else set("idle","●","Pulsa «Comenzar» para empezar el ejercicio");
+      if(n>0&&ph!=="out")sum.textContent="Aire estable en la exhalación: "+Math.round(ok/n*100)+"%"});
+    coachOff=off;
+  });
+  return card(h("h2",{},"Tutor en vivo"),h("div",{class:"coach"},h("p",{class:"muted small"},"Mide si tu aire sale parejo al exhalar. Es una guía aproximada según el volumen de tu soplido."),h("div",{class:"row"},btn),badge,h("span",{class:"small muted"},"Volumen del aire"),lvl,sum));
+}
+
 function mTuner(b){
   const p=prof();let target=p.base,done=false;
   const ns=noteSelect("tu-target",target,p.lo-3,p.hi+3);
@@ -1026,7 +1144,8 @@ function mTuner(b){
       needle.lastChild.style.background=Math.abs(ct)<15?"var(--good)":Math.abs(ct)<40?"var(--warn)":"var(--bad)";
       const ok=Math.abs(ct)<20;held=ok?held+dt:Math.max(0,held-dt);hold.firstChild.style.width=clamp(held/3*100,0,100)+"%";
       w.clearMarks();if(ok)w.mark(pc(target),"hit");w.set({base:pc(target),on:ok?undefined:pc(n)});
-      msg.textContent=ok?(held>=3?"Sostenida 3 segundos. Excelente.":"Afinada: mantenla…"):Math.abs(ct)>=100?"Cantas "+nm(n)+": busca "+nm(target):ct>0?"Estás alto: relaja y baja un poco":"Estás bajo: más apoyo de aire, sube un poco";
+      msg.textContent=ok?(held>=3?"★ Sostenida 3 segundos. Excelente.":"✓ Afinada: mantenla…"):Math.abs(ct)>=100?"✕ Cantas "+nm(n)+": busca "+nm(target):ct>0?"↓ Estás alto: relaja y baja un poco":"↑ Estás bajo: más apoyo de aire, sube un poco";
+      msg.style.color=ok?"var(--good)":Math.abs(ct)<100?"var(--warn)":"var(--bad)";msg.style.fontWeight="700";
       if(held>=3&&!done){done=true;S.scores.nota.push({ts:Date.now(),pct:Math.round(clamp(100-Math.abs(ct)*1.5,70,100))});save();toast("Nota sostenida y afinada")}
     });
     liveUn.push(off);
@@ -1070,6 +1189,7 @@ function mCal(b){
     h("div",{class:"grid3"},h("label",{class:"field"},"Desde",lo),h("label",{class:"field"},"Hasta",hi),h("label",{class:"field"},h("span",{},"Tempo ",tl),tempo)),
     now,bar,info,
     h("div",{class:"row",style:"justify-content:center"},h("button",{class:"btn primary",onclick:start},"Comenzar calentamiento"),h("button",{class:"btn ghost",onclick:()=>{stopAll();now.firstChild.textContent="—";bar.firstChild.style.width="0%"}},"Detener"))));
+  b.append(coachCard({mode:"range",range:()=>({lo:+lo.value,hi:+hi.value}),hint:"Mientras calientas, te aviso si te acercas al borde de tu rango para que no fuerces."}));
 }
 function mNota(b){
   const p=prof(),pick={base:p.base,low:p.lo+1,mid:Math.round((p.lo+p.hi)/2),high:p.hi-1};
@@ -1084,18 +1204,20 @@ function mNota(b){
       h("button",{class:"btn",onclick:()=>{stopAll();tone(mf(target),ac().currentTime+.05,8,{gain:.08})}},"Cantar con guía suave"),
       h("button",{class:"btn ghost",onclick:stopAll},"Detener")),
     h("p",{class:"quote"},"La nota se canta dos veces: primero en la mente, luego en la voz.")),
+    coachCard({mode:"one",kind:"nota",targets:()=>[target],hint:"Canta «ma» en la nota elegida y sostenla 3 segundos."}),
     card(...verifyBlock("Verificar "+nm(target),()=>[target],"nota")));
 }
 function mResp(b){
   const circle=h("div",{class:"breath"},h("b",{},"Listo"));const lab=h("p",{class:"muted",style:"text-align:center"},"Inhala 4 · sostén 2 · exhala con «sss» 6 · cinco ciclos");
-  let running=false;
-  const start=()=>{stopAll();running=true;let cyc=0;const one=()=>{if(!running)return;if(cyc>=5){circle.firstChild.textContent="Hecho";circle.style.transform="scale(.6)";running=false;return}cyc++;
+  let running=false,ph="idle";
+  const start=()=>{stopAll();running=true;let cyc=0;const one=()=>{if(!running)return;if(cyc>=5){circle.firstChild.textContent="Hecho";circle.style.transform="scale(.6)";running=false;ph="idle";return}cyc++;ph="in";
     circle.style.transitionDuration="4s";circle.style.transform="scale(1)";circle.firstChild.textContent="Inhala";
-    later(()=>{circle.firstChild.textContent="Sostén"},4000);
-    later(()=>{circle.style.transitionDuration="6s";circle.style.transform="scale(.6)";circle.firstChild.textContent="Exhala sss"},6000);
+    later(()=>{ph="hold";circle.firstChild.textContent="Sostén"},4000);
+    later(()=>{ph="out";circle.style.transitionDuration="6s";circle.style.transform="scale(.6)";circle.firstChild.textContent="Exhala sss"},6000);
     later(()=>{lab.textContent="Ciclo "+cyc+" de 5 terminado";one()},12000)};one()};
   b.append(card(h("h2",{},"Respiración guiada"),h("p",{class:"muted"},"La afinación necesita aire estable. Hombros quietos, el abdomen se expande al inhalar."),circle,lab,
-    h("div",{class:"row",style:"justify-content:center"},h("button",{class:"btn primary",onclick:start},"Comenzar"),h("button",{class:"btn ghost",onclick:()=>{running=false;stopAll();circle.firstChild.textContent="Listo";circle.style.transform="scale(.6)"}},"Detener"))));
+    h("div",{class:"row",style:"justify-content:center"},h("button",{class:"btn primary",onclick:start},"Comenzar"),h("button",{class:"btn ghost",onclick:()=>{running=false;ph="idle";stopAll();circle.firstChild.textContent="Listo";circle.style.transform="scale(.6)"}},"Detener"))));
+  b.append(breathCoach(()=>ph));
 }
 function mInt(b){
   const p=prof();let root=nearOct(p.base,p.lo+3);if(root+12>p.hi+2)root=Math.max(p.lo,p.hi-12);
@@ -1109,6 +1231,7 @@ function mInt(b){
     h("div",{class:"row"},h("button",{class:"btn primary",onclick:()=>playSeq([root,root+I.s],{dur:1})},"Escuchar recorrido"),
       h("button",{class:"btn",onclick:()=>{stopAll();playChord([root,root+I.s],2.5,{type:"voice",gain:.14})}},"Escuchar juntas"),
       h("button",{class:"btn",onclick:()=>playSeq([root,root+I.s,root],{dur:1.2})},"Ida y vuelta"))),
+    coachCard({mode:"seq",kind:"int",need:.7,targets:()=>[root,root+I.s],hint:"Canta la primera nota, y cuando se ponga verde, viaja hacia la segunda."}),
     card(...verifyBlock("Verificar: canta las dos notas separadas",()=>[root,root+I.s],"int")));
 }
 let quizS={q:0,ok:0,cur:null,root:60,answered:false};
@@ -1220,6 +1343,7 @@ function mRitmo(b){
   b.append(card(h("h2",{},"Ritmo y entradas"),h("p",{class:"muted"},"La afinación necesita ritmo. Canta «ma» con cada nota de la guía; el clic agudo marca el tiempo 1."),
     h("div",{class:"grid2"},h("label",{class:"field"},"Patrón",sel),h("label",{class:"field"},"Notas",nsel)),h("label",{class:"field"},h("span",{},"Tempo ",tl),tempo),beat,st,
     h("div",{class:"row",style:"justify-content:center"},h("button",{class:"btn primary",onclick:()=>{start();S.scores.ritmo.push({ts:Date.now(),pct:100});save()}},"Iniciar"),h("button",{class:"btn ghost",onclick:()=>{stopAll();st.textContent="Compás de 4/4"}},"Detener"))));
+  b.append(coachCard({mode:"any",targets:()=>modState.ritmoN==="esc"?[p.base,p.base+2,p.base+4,p.base+5]:[p.base],need:.5,hint:"Canta «ma» con cada golpe de la guía: el indicador te dice si estás en la nota."}));
 }
 function satb(R){return[{S:R+4,A:R,T:R-5,B:R-12},{S:R+5,A:R,T:R-3,B:R-7},{S:R+7,A:R+2,T:R-1,B:R-5},{S:R+4,A:R,T:R-5,B:R-12}]}
 function mArm(b){
@@ -1236,7 +1360,7 @@ function mArm(b){
         h("button",{class:"btn primary",onclick:()=>{stopAll();const t=ac().currentTime+.05;sys.forEach(m=>tone(mf(m),t,10,{type:"pad",gain:.13}))}},"Tocar acorde 10 s"),
         h("button",{class:"btn",onclick:()=>{stopAll();const t=ac().currentTime+.05;sys.forEach(m=>tone(mf(m),t,4,{type:"pad",gain:.13}));tone(mf(you),t,4,{gain:.15})}},"Acorde completo"),
         h("button",{class:"btn ghost",onclick:stopAll},"Detener")));
-    b.append(card(...verifyBlock("Verificar: canta "+nm(you)+" sobre el acorde (usa auriculares)",()=>[you],"arm")));
+    b.append(coachCard({mode:"one",kind:"arm",targets:()=>[you],hint:"Toca el acorde con auriculares y canta tu nota: te digo si encaja."}),card(...verifyBlock("Verificar: canta "+nm(you)+" sobre el acorde (usa auriculares)",()=>[you],"arm")));
   }else if(lvl==="avanzado"){
     const R=60+pc(p.base)-(pc(p.base)>6?12:0);const ch=satb(R);
     const vs=h("select",{id:"arm-voice"},[["S","Soprano"],["A","Contralto"],["T","Tenor"],["B","Bajo"]].map(([v,n])=>h("option",{value:v},n)));
@@ -1246,13 +1370,14 @@ function mArm(b){
     c.append(h("p",{class:"muted"},"Progresión I–IV–V–I en "+NAMES[pc(R)]+". El sistema canta tres voces y tú la que elijas."),
       h("label",{class:"field"},"Tu voz",vs),h("p",{class:"mono"},"Tu línea: "+line.map(nm).join(" · ")),
       h("div",{class:"row"},h("button",{class:"btn",onclick:()=>playSeq(line,{dur:1.6,gap:.4})},"Escuchar mi línea"),h("button",{class:"btn primary",onclick:()=>play(true)},"Coro con guía"),h("button",{class:"btn",onclick:()=>play(false)},"Coro sin mi voz"),h("button",{class:"btn ghost",onclick:stopAll},"Detener")));
-    b.append(card(...verifyBlock("Verificar: canta tu línea sobre el coro",()=>line,"arm")));
+    b.append(coachCard({mode:"seq",kind:"arm",need:.8,targets:()=>line,hint:"Canta tu línea nota por nota, con auriculares."}),card(...verifyBlock("Verificar: canta tu línea sobre el coro",()=>line,"arm")));
   }else{
     const R=nearOct(p.base,p.lo+3),prog=[[0,4,7],[9,12,16],[5,9,12],[7,11,14]];
     const penta=[0,2,4,7,9].map(s=>R+s);
     c.append(h("p",{class:"muted"},"Base I–vi–IV–V con pulso. Improvisa respuestas cortas usando la pentatónica: "+penta.map(m=>NAMES[pc(m)]).join(" · ")+"."),
       h("div",{class:"row"},h("button",{class:"btn primary",onclick:()=>{stopAll();const c2=ac(),bt=60/modState.tempo,t=c2.currentTime+.1;for(let r=0;r<3;r++)prog.forEach((ch,i)=>{const st=t+(r*4+i)*4*bt;ch.forEach(s=>tone(mf(R-12+s),st,4*bt*.97,{type:"pad",gain:.11}));for(let k=0;k<4;k++)click(st+k*bt,k===0)})}},"Tocar base (3 vueltas)"),
         h("button",{class:"btn",onclick:()=>playSeq(penta,{dur:.5})},"Escuchar pentatónica"),h("button",{class:"btn ghost",onclick:stopAll},"Detener")));
+    b.append(coachCard({mode:"any",targets:()=>penta,need:.5,hint:"Improvisa: el indicador se pone verde cuando cantas una nota de la pentatónica."}));
   }
 }
 function mRep(b){
@@ -1268,6 +1393,7 @@ function mRep(b){
     h("label",{class:"field"},"Canción",t),h("div",{class:"grid3"},h("label",{class:"field"},"Tonalidad",r),h("label",{class:"field"},"Modo",md),h("label",{class:"field"},"Nota inicial",st)),
     h("div",{class:"row"},h("button",{class:"btn",onclick:()=>{const R=nearOct(s.root,p.base);const st2=s.mode==="mayor"?[0,4,7,12]:[0,3,7,12];playSeq(st2.map(x=>R+x),{dur:.45});setTimeout(()=>playChord(st2.slice(0,3).map(x=>R+x),2.5),2300)}},"Escuchar tonalidad"),
       h("button",{class:"btn primary",onclick:()=>{stopAll();tone(mf(+st.value),ac().currentTime+.05,2.2)}},"Nota inicial")),list),
+    coachCard({mode:"one",kind:"nota",targets:()=>[+st.value],hint:"Canta la nota inicial de tu canción y sostenla."}),
     card(...verifyBlock("Verificar la nota inicial de tu canción",()=>[+st.value],"nota")));
 }
 

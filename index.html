@@ -271,8 +271,8 @@ details.fold>div{padding-bottom:18px;display:flex;flex-direction:column;gap:12px
 .tu-viz .wheel{max-width:min(100%,270px)}
 .tu-live .freq{font-size:2rem;line-height:1.1}
 @media (min-width:560px){
-  .tu-grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-areas:"top viz" "live viz";align-items:start;column-gap:20px}
-  .tu-top{grid-area:top}.tu-live{grid-area:live}.tu-viz{grid-area:viz;align-self:center}
+  .tu-grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-areas:"top head" "live head" "viz viz";grid-template-rows:auto 1fr auto;align-items:start;column-gap:20px}
+  .tu-top{grid-area:top}.tu-live{grid-area:live;align-self:start}.tu-viz{grid-area:viz;align-self:center}
   .tu-viz .wheel{max-width:min(360px,max(200px,calc(100vh - 170px)))}
   .tu-top .btn{padding:10px 14px;min-height:44px}
   .tu-top .row{flex-wrap:nowrap}.tu-top .btn{font-size:.9rem;white-space:nowrap}
@@ -308,6 +308,24 @@ details.fold>div{padding-bottom:18px;display:flex;flex-direction:column;gap:12px
 .coach .chips .pill.hit{background:var(--good);color:#fff}
 .coach-grid{display:grid;gap:10px}
 @media (min-width:560px){.coach-grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr);column-gap:20px;align-items:center}}
+/* Horizontal en pantallas anchas: activar y ver al mismo tiempo */
+.coach-wide{display:flex;flex-direction:column;gap:12px}
+.map-grid{display:grid;gap:14px}
+.map-viz{display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center}
+.map-tail{display:flex;flex-direction:column;gap:12px}
+.tri{display:grid;gap:14px}.tri>.a,.tri>.b,.tri>.c{min-width:0}
+.tu-head{grid-area:head}
+@media (min-width:700px){
+  .coach-wide{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,.8fr);gap:20px;align-items:start}
+  .coach-wide .headpanel{position:sticky;top:84px}
+  .map-grid{grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);grid-template-areas:"top viz" "tail viz";column-gap:24px;align-items:start}
+  .map-top{grid-area:top}.map-viz{grid-area:viz;position:sticky;top:84px}.map-tail{grid-area:tail}
+}
+@media (min-width:560px){
+  .tri{grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-areas:"a c" "b b"}
+  .tri>.a{grid-area:a}.tri>.b{grid-area:b}.tri>.c{grid-area:c}
+}
+}
 </style>
 
 </head>
@@ -574,7 +592,7 @@ function domePos(dim,ph,D,k){
   const rn=Math.min(1,Math.hypot(mx,mz)/.9),el=(Math.PI/2)*(1-rn*rn),az=Math.atan2(mx,-mz);
   return[D*Math.cos(el)*Math.sin(az),D*Math.sin(el),-D*Math.cos(el)*Math.cos(az)];
 }
-function spaceAt(dim,ph){return domePos(dim,ph,.9,1.6)}
+function spaceAt(dim,ph){return domePos(dim,ph,.9,S.trajMove?1.2:0)}
 function spatialize(node,freq,t0,dur,dim){
   const c=AC;if(dim==null)dim=pc(69+12*Math.log2(freq/440));
   const pn=c.createPanner();pn.panningModel="HRTF";pn.distanceModel="inverse";pn.refDistance=1;pn.rolloffFactor=.6;
@@ -812,9 +830,9 @@ function headCanvas(cv,opt={}){
     DIMS.forEach((d,i)=>{if(i===cur)return;const x=c+d.p[0]*R,y=c+d.p[1]*R;ctx.beginPath();ctx.fillStyle=css("--surface");ctx.strokeStyle=css("--line");ctx.lineWidth=1.5;ctx.arc(x,y,9,0,Math.PI*2);ctx.fill();ctx.stroke();
       ctx.fillStyle=css("--muted");ctx.font="700 9px "+css("--body");ctx.fillText(String(i+1),x,y+.5)});
     ctx.textBaseline="alphabetic";
-    const d=DIMS[cur],cx=c+d.p[0]*R,cy=c+d.p[1]*R,pt=anim?trajPoint(d.t,phase):[0,0];
-    ctx.strokeStyle=teal;ctx.lineWidth=2;ctx.globalAlpha=.55;ctx.beginPath();
-    for(let s=0;s<=120;s++){const[a,b]=trajPoint(d.t,s/120);s?ctx.lineTo(cx+a*R,cy+b*R):ctx.moveTo(cx+a*R,cy+b*R)}ctx.stroke();ctx.globalAlpha=1;
+    const mv=!!S.trajMove,d=DIMS[cur],cx=c+d.p[0]*R,cy=c+d.p[1]*R,pt=anim&&mv?trajPoint(d.t,phase):[0,0];
+    if(mv){ctx.strokeStyle=teal;ctx.lineWidth=2;ctx.globalAlpha=.55;ctx.beginPath();
+    for(let s=0;s<=120;s++){const[a,b]=trajPoint(d.t,s/120);s?ctx.lineTo(cx+a*R,cy+b*R):ctx.moveTo(cx+a*R,cy+b*R)}ctx.stroke();ctx.globalAlpha=1}
     if(tgt!=null&&tgt!==cur){const t=DIMS[tgt];ctx.setLineDash([4,3]);ctx.strokeStyle=teal;ctx.lineWidth=2.5;ctx.beginPath();ctx.arc(c+t.p[0]*R,c+t.p[1]*R,14,0,Math.PI*2);ctx.stroke();ctx.setLineDash([])}
     const gx=cx+pt[0]*R,gy=cy+pt[1]*R,gr=R*(.2+.2*glow)*(anim?1+.12*pulse:1);
     blob(gx,gy,gr,acc,.75);
@@ -826,8 +844,8 @@ function headCanvas(cv,opt={}){
     ctx.beginPath();ctx.arc(mx,by,Rd,Math.PI,Math.PI*2);ctx.closePath();ctx.fill();ctx.stroke();
     ctx.fillStyle=css("--muted");ctx.font="600 10px "+css("--body");ctx.textAlign="center";
     ctx.fillText("FRENTE",mx-Rd-2,by+14);ctx.fillText("NUCA",mx+Rd+2,by+14);ctx.fillText("VISTA LATERAL · ALTURA",mx,by+28);
-    DIMS.forEach((dd,i)=>{if(i===cur)return;const q=domePos(i,0,1);ctx.beginPath();ctx.fillStyle=css("--line");ctx.arc(mx+q[2]*Rd,by-q[1]*Rd,3,0,Math.PI*2);ctx.fill()});
-    const q=domePos(cur,anim?phase:0,1,1),sx=mx+q[2]*Rd,sy=by-q[1]*Rd;
+    DIMS.forEach((dd,i)=>{if(i===cur)return;const q=domePos(i,0,1,0);ctx.beginPath();ctx.fillStyle=css("--line");ctx.arc(mx+q[2]*Rd,by-q[1]*Rd,3,0,Math.PI*2);ctx.fill()});
+    const q=domePos(cur,anim&&mv?phase:0,1,mv?1:0),sx=mx+q[2]*Rd,sy=by-q[1]*Rd;
     blob(sx,sy,Rd*(.22+.2*glow),acc,.75);ctx.fillStyle=acc;ctx.beginPath();ctx.arc(sx,sy,6,0,Math.PI*2);ctx.fill();
   }
   function loop(ts){if(!last)last=ts;phase=(phase+(ts-last)/2600)%1;last=ts;pulse=.5+.5*Math.sin(ts/150);draw();anim=requestAnimationFrame(loop)}
@@ -991,20 +1009,29 @@ function selectDim(p,play){
   octSel.addEventListener("change",()=>{mapOct=+octSel.value;selectDim(mapSel,true)});
   const cv=h("canvas",{class:"headcv","aria-label":"Mapa craneal: "+d.zone+", trayectoria "+d.traj});
   const cap=h("p",{class:"headcap",role:"status"},"Se siente en: "+(p+1)+"D · "+d.f+" · "+d.zone);
-  el.append(h("div",{class:"row",style:"justify-content:space-between"},h("div",{class:"eyebrow"},(p+1)+"D · "+d.f),octSel),
-    h("div",{class:"freq"},NAMES[p]+mapOct,h("small",{},f.toFixed(2)+" Hz")),
-    h("p",{class:"muted"},d.zone+" · "+d.traj),cv,cap,
-    h("p",{class:"small muted"},S.spatial?"Audio 12D activo. Con audífonos, el tono se percibe en la zona marcada de tu cráneo (arriba, al frente, a los lados o atrás) y recorre su trayectoria.":"Audio 12D apagado: actívalo arriba y usa audífonos para percibir el sonido en la zona del cráneo."),headphoneTestBtn());
+  const mvSel=h("select",{id:"traj-mode","aria-label":"Movimiento del sonido"},[["0","Sonido fijo en la zona"],["1","Sonido recorre la trayectoria"]].map(([v,n])=>h("option",{value:v},n)));
+  mvSel.value=S.trajMove?"1":"0";mvSel.addEventListener("change",()=>{S.trajMove=mvSel.value==="1";save();head.draw();toast(S.trajMove?"El sonido recorrerá la trayectoria":"El sonido se queda fijo en la zona")});
   const seqBox=h("div",{class:"seq",id:"seq-steps"},["Escuchar","Sentir","Imaginar","Respirar","Cantar","Verificar"].map((s,i)=>h("div",{},h("small",{},"0"+(i+1)),s)));
   const msg=h("p",{class:"quote",id:"seq-msg"},"No persigas la nota con miedo; aprende a sentirla dentro de tu cuerpo.");
-  el.append(h("div",{class:"row"},
-    h("button",{class:"btn primary",onclick:()=>{stopAll();tone(f,ac().currentTime+.05,2.6);head.play(2.6)}},"Escuchar y sentir"),
-    h("button",{class:"btn",onclick:()=>runSequence(midi)},"Secuencia guiada")),seqBox,msg);
+  const emu=liveCoach({mode:"one",kind:"nota",head:false,headExt:{live:(a,b)=>head.live(a,b),setTarget:t=>head.setTarget(t),quiet:()=>head.quiet()},targets:()=>[midi],
+    hint:"Escucha el sonido en su zona del cráneo y emúlalo con tu voz («ma»). El indicador te dice si estás en la misma nota."});
   const vr=h("div");
-  el.append(uploader("Verificar: canta "+NAMES[p]+" (cualquier octava)",async(an,file,st)=>{
-    const r=verifyNote(midi,an);if(!r){st.textContent="No detecté una nota sostenida.";return}
-    S.scores.nota.push({ts:Date.now(),pct:r.pct});save();vr.innerHTML="";vr.append(noteResult(r))}),vr);
-  head=headCanvas(cv,{onDim:d=>{cap.textContent="Se siente en: "+(d+1)+"D · "+DIMS[d].f+" · "+DIMS[d].zone}});requestAnimationFrame(()=>head.set(p));
+  el.append(h("div",{class:"map-grid"},
+    h("div",{class:"map-top"},
+      h("div",{class:"row",style:"justify-content:space-between"},h("div",{class:"eyebrow"},(p+1)+"D · "+d.f),octSel),
+      h("div",{class:"freq"},NAMES[p]+mapOct,h("small",{},f.toFixed(2)+" Hz")),
+      h("p",{class:"muted"},d.zone+" · "+d.traj),
+      h("div",{class:"row"},
+        h("button",{class:"btn primary",onclick:()=>{stopAll();tone(f,ac().currentTime+.05,2.6);head.play(2.6)}},"Escuchar y sentir"),
+        h("button",{class:"btn",onclick:()=>{stopAll();msg.textContent="Escucha y siente la nota en "+d.zone.toLowerCase()+". Luego emúlala con tu voz.";tone(f,ac().currentTime+.05,2.6);head.play(2.6);setTimeout(()=>{emu.start();msg.textContent="Ahora emula el sonido con tu voz: «ma»"},3000)}},"Escuchar y emular"),
+        h("button",{class:"btn",onclick:()=>runSequence(midi)},"Secuencia guiada")),
+      h("p",{class:"small muted"},S.spatial?"Audio 12D activo. Con audífonos, el tono se percibe en la zona marcada de tu cráneo.":"Audio 12D apagado: actívalo arriba y usa audífonos para percibir el sonido en la zona del cráneo.")),
+    h("div",{class:"map-viz"},cv,cap,h("label",{class:"field",style:"width:100%"},"Movimiento",mvSel),headphoneTestBtn()),
+    h("div",{class:"map-tail"},seqBox,msg,h("h3",{},"Emula con tu voz"),emu,
+      uploader("O graba y verifica: canta "+NAMES[p]+" (cualquier octava)",async(an,file,st)=>{
+        const r=verifyNote(midi,an);if(!r){st.textContent="No detecté una nota sostenida.";return}
+        S.scores.nota.push({ts:Date.now(),pct:r.pct});save();vr.innerHTML="";vr.append(noteResult(r))}),vr)));
+  head=headCanvas(cv,{onDim:dd=>{cap.textContent="Se siente en: "+(dd+1)+"D · "+DIMS[dd].f+" · "+DIMS[dd].zone}});requestAnimationFrame(()=>head.set(p));
   if(mapWheel)mapWheel.set({on:p,base:lastMap()?pc(lastMap().base):undefined});
   document.querySelectorAll("#dims .dim").forEach((b,i)=>b.setAttribute("aria-pressed",i===p?"true":"false"));
   if(play){stopAll();tone(f,ac().currentTime+.05,1.6);setTimeout(()=>head.play(1.6),50)}
@@ -1083,11 +1110,11 @@ function liveCoach(o){
   const bar=h("div",{class:"bar"},h("i",{style:"width:0%"}));
   const chips=h("div",{class:"chips"});
   const btn=h("button",{class:"btn primary",type:"button"},"Activar indicador en vivo");
-  const hp=o.head===false?null:headPanel({test:false});
+  const hp=o.head===false?null:headPanel({test:false});const HD=o.headExt||(hp?hp.head:null);
   const paint=()=>{chips.innerHTML="";if(mode!=="seq")return;o.targets().forEach((m,i)=>chips.append(h("span",{class:"pill "+(i<idx?"hit":i===idx&&un?"now":"")},nm(m))))};
   const needlePos=(pct,col)=>{needle.lastChild.style.left=pct+"%";needle.lastChild.style.background=col};
   const reset=()=>{idx=0;held=0;done=false;hits=[];tot=0;bar.firstChild.style.width="0%";paint()};
-  const off=()=>{if(un){un();un=null}if(coachOff===off)coachOff=null;btn.textContent="Activar indicador en vivo";set("idle","●","Indicador en pausa");big.textContent="—";needlePos(50,"var(--muted)");if(hp)hp.head.quiet();paint()};
+  const off=()=>{if(un){un();un=null}if(coachOff===off)coachOff=null;btn.textContent="Activar indicador en vivo";set("idle","●","Indicador en pausa");big.textContent="—";needlePos(50,"var(--muted)");if(HD)HD.quiet();paint()};
   const finish=(pct,txt)=>{done=true;if(o.kind){S.scores[o.kind].push({ts:Date.now(),pct});save()}toast(txt);try{navigator.vibrate&&navigator.vibrate([40,40,40])}catch(e){}};
   const frame=p=>{
     const now=performance.now(),dt=Math.min(.1,(now-last)/1000);last=now;
@@ -1095,7 +1122,7 @@ function liveCoach(o){
       const r=o.range();
       if(p.midi==null){hist=[];big.textContent="—";set("idle","…",p.rms>.02?"Te escucho, pero no detecto una nota clara":"Canta con «ma», «mi» o vibración de labios");needlePos(50,"var(--muted)");return}
       hist.push(p.midi);if(hist.length>5)hist.shift();const md=[...hist].sort((a,b)=>a-b)[hist.length>>1],n=Math.round(md);big.textContent=nm(n);
-      if(hp)hp.head.live(pc(n),clamp(p.rms/.1,0,1));
+      if(HD)HD.live(pc(n),clamp(p.rms/.1,0,1));
       const span=r.hi-r.lo||1;needlePos(clamp((md-r.lo)/span*100,2,98),"var(--teal)");
       if(md>r.hi+.5)set("off","↓","Por encima de tu rango cómodo: no fuerces, baja");
       else if(md<r.lo-.5)set("off","↑","Por debajo de tu rango cómodo: sube un poco");
@@ -1111,7 +1138,7 @@ function liveCoach(o){
     if(mode==="any")t=T.reduce((a,b)=>Math.abs(md-nearOct(b,md))<Math.abs(md-nearOct(a,md))?b:a);
     const ct=(md-nearOct(t,md))*100,ok=Math.abs(ct)<20;
     big.textContent=nm(n);
-    if(hp){hp.head.setTarget(pc(t));hp.head.live(pc(n),clamp(p.rms/.1,0,1))}
+    if(HD){HD.setTarget(pc(t));HD.live(pc(n),clamp(p.rms/.1,0,1))}
     needlePos(clamp(50+ct/2,2,98),ok?"var(--good)":Math.abs(ct)<40?"var(--warn)":"var(--bad)");
     if(ok)set("ok","✓","Afinada · "+nm(t)+" ("+(ct>0?"+":"")+Math.round(ct)+" ¢)");
     else if(Math.abs(ct)<100)set("near",ct>0?"↓":"↑",ct>0?"Estás alto: baja un poco":"Estás bajo: sube un poco");
@@ -1135,13 +1162,12 @@ function liveCoach(o){
     btn.textContent="Pausar indicador";set("idle","…","Te escucho: canta «ma»");paint();
     un=micSub(frame);coachOff=off;
   });
-  const wrap=h("div",{class:"coach"},
+  const main=h("div",{class:"coach"},
     h("p",{class:"muted small"},o.hint||"Activa el indicador y canta: te diré al instante si estás en la nota."),
     h("div",{class:"row"},btn),badge,
     h("div",{class:"coach-grid"},h("div",{},big,goal,chips),h("div",{},mode==="range"?null:needle,mode==="range"?null:scale,mode==="range"?null:h("span",{class:"small muted"},"Tiempo en la nota"),mode==="range"?null:bar)));
-  if(hp)wrap.append(hp.el);
-  if(mode==="range"){wrap.children[3].lastChild.append(needle,h("div",{class:"row small mono muted",style:"justify-content:space-between"},h("span",{},"grave"),h("span",{},"tu rango"),h("span",{},"agudo")))}
-  paint();return wrap;
+  if(mode==="range"){main.children[3].lastChild.append(needle,h("div",{class:"row small mono muted",style:"justify-content:space-between"},h("span",{},"grave"),h("span",{},"tu rango"),h("span",{},"agudo")))}
+  const wrap=h("div",{class:hp?"coach-wide":""},main,hp?hp.el:null);wrap.start=()=>{if(!un)btn.click()};paint();return wrap;
 }
 function coachCard(o){return card(h("h2",{},"Tutor en vivo"),liveCoach(o))}
 
@@ -1184,7 +1210,7 @@ function mTuner(b){
   const needle=h("div",{class:"tuner",role:"img","aria-label":"Desvío en cents"},h("i"),h("b"));
   const scale=h("div",{class:"row small mono muted",style:"justify-content:space-between"},h("span",{},"−100 ¢"),h("span",{},"0"),h("span",{},"+100 ¢"));
   const hold=h("div",{class:"bar"},h("i",{style:"width:0%"}));
-  const hp=headPanel();
+  const hp=headPanel();hp.el.classList.add("tu-head");
   const msg=h("p",{class:"seq-status",role:"status"},"Toca «Activar micrófono» y canta «ma».");
   const svg=document.createElementNS("http://www.w3.org/2000/svg","svg");svg.setAttribute("viewBox","0 0 360 360");svg.setAttribute("class","wheel");
   const w=buildWheel(svg,pp=>{target=nearOct(pp,target);ns.value=target;reset()});
@@ -1222,7 +1248,7 @@ function mTuner(b){
       h("div",{class:"tu-top"},h("label",{class:"field"},"Nota objetivo",ns),
         h("div",{class:"row"},btn,h("button",{class:"btn",type:"button",onclick:()=>{tone(mf(target),ac().currentTime+.05,2)}},"Escuchar objetivo"))),
       h("div",{class:"tu-viz"},svg),
-      h("div",{class:"tu-live"},big,sub,needle,scale,h("span",{class:"small muted"},"Tiempo sostenida"),hold,msg)),hp.el));
+      h("div",{class:"tu-live"},big,sub,needle,scale,h("span",{class:"small muted"},"Tiempo sostenida"),hold,msg),hp.el)));
 }
 const WARM={cinco:{n:"Cinco notas (1-2-3-4-5-4-3-2-1)",st:[0,2,4,5,7,5,4,2,0]},arp:{n:"Arpegio (1-3-5-8-5-3-1)",st:[0,4,7,12,7,4,0]},
   tres:{n:"Tres notas suaves (1-2-3-2-1)",st:[0,2,4,2,0]},sirena:{n:"Sirena de quinta (1-5-1, lento)",st:[0,7,0]}};
@@ -1421,13 +1447,13 @@ function seqBlock(b,title,dict,key,kind){
     later(()=>{w.set({range:rng(),base:pc(root)});status.textContent=r.n+" de "+r.total+" notas encontradas · puntaje "+r.pct+"%"},700+ex.length*650);
   }
   b.append(card(h("h2",{},title),h("p",{class:"muted"},D.use),
-    h("div",{class:"grid2"},h("label",{class:"field"},"Tipo",sel),h("label",{class:"field"},"Tónica",rs),h("label",{class:"field"},"Dirección",dir),h("label",{class:"field"},h("span",{},"Tempo ",tl),tempo)),nl,svg,
+    h("div",{class:"grid2"},h("label",{class:"field"},"Tipo",sel),h("label",{class:"field"},"Tónica",rs),h("label",{class:"field"},"Dirección",dir),h("label",{class:"field"},h("span",{},"Tempo ",tl),tempo)),nl,h("div",{class:"tri"},h("div",{class:"a"},
     h("div",{class:"grid2"},h("label",{class:"field"},"Modo",modeSel),h("label",{class:"field"},"Tiempo para cantar",pauseSel)),
     MIC.ok?h("label",{class:"row small",style:"gap:8px;font-weight:600"},liveChk,"Encender la nota con mi voz en vivo (micrófono)"):null,
-    status,legend,hp.el,
+    status,legend,
     h("div",{class:"row",style:"justify-content:center"},h("button",{class:"btn primary",onclick:run},"Comenzar"),
       h("button",{class:"btn ghost",onclick:()=>{stopAll();w.clearMarks();w.set({range:rng(),base:pc(root)});status.textContent="Detenido."}},"Detener")),
-    kind==="arp"?h("p",{class:"small muted"},"Siente cada nota en su zona 12D, cántala lento y repite con ma, me, mi, mo, mu."):null),
+    kind==="arp"?h("p",{class:"small muted"},"Siente cada nota en su zona 12D, cántala lento y repite con ma, me, mi, mo, mu."):null),h("div",{class:"b"},svg),h("div",{class:"c"},hp.el))),
     card(...verifyBlock("Verificar: graba "+(kind==="arp"?"el arpegio":"la escala")+" nota por nota y mira la rueda",notes,kind,showRes)));
 }
 function mEsc(b){seqBlock(b,"Escalas",SCALES,"esc","esc")}

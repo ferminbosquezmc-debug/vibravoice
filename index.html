@@ -326,6 +326,8 @@ details.fold>div{padding-bottom:18px;display:flex;flex-direction:column;gap:12px
   .tri>.a{grid-area:a}.tri>.b{grid-area:b}.tri>.c{grid-area:c}
 }
 }
+.micbanner{position:fixed;left:12px;right:12px;top:72px;z-index:60;max-width:640px;margin:0 auto;background:var(--surface);border:2px solid var(--bad);border-radius:16px;padding:14px 16px;box-shadow:0 8px 28px rgba(0,0,0,.2);display:flex;flex-direction:column;gap:10px}
+.micbanner p{font-weight:600}
 </style>
 
 </head>
@@ -698,9 +700,20 @@ function smoothFrames(fr){
   return fr.map((v,j)=>{if(v==null)return null;const w=[];for(let q=j-2;q<=j+2;q++)if(fr[q]!=null)w.push(fr[q]);w.sort((a,b)=>a-b);const med=w[w.length>>1];let r=v;while(r-med>6)r-=12;while(med-r>6)r+=12;return r});
 }
 function micErrText(){
-  if(MIC.err==="NotAllowedError"||MIC.err==="SecurityError")return "Permiso de micrófono denegado. Toca el candado junto a la dirección, permite el micrófono y recarga la página.";
-  if(MIC.err==="NotFoundError")return "No encontré un micrófono en este dispositivo.";
-  return "No pude abrir el micrófono. Cierra otras apps que lo estén usando e inténtalo de nuevo.";
+  const embedded=window.top!==window.self;let t;
+  if(!window.isSecureContext)t="El micrófono solo funciona desde una dirección segura (https). Abre la app desde su enlace https.";
+  else if(embedded&&(MIC.err==="NotAllowedError"||MIC.err==="SecurityError"||!MIC.err))t="El navegador no deja usar el micrófono dentro de esta vista previa. Abre la app en su propia pestaña.";
+  else if(MIC.err==="NotAllowedError"||MIC.err==="SecurityError")t="Permiso de micrófono denegado. Toca el candado junto a la dirección, permite el micrófono y recarga la página.";
+  else if(MIC.err==="NotFoundError")t="No encontré un micrófono en este dispositivo.";
+  else t="No pude abrir el micrófono. Cierra otras apps que lo estén usando e inténtalo de nuevo.";
+  showMicBanner(t,embedded||!window.isSecureContext);return t;
+}
+function showMicBanner(t,canOpen){
+  const old=document.getElementById("mic-banner");if(old)old.remove();
+  const bn=h("div",{id:"mic-banner",class:"micbanner",role:"alert"},h("p",{},t),
+    h("div",{class:"row"},canOpen?h("a",{class:"btn sm primary",href:location.href,target:"_blank",rel:"noopener"},"Abrir en pestaña nueva"):null,
+      h("button",{class:"btn sm ghost",type:"button",onclick:()=>bn.remove()},"Cerrar")));
+  document.body.append(bn);
 }
 async function micStart(){
   if(MIC.stream)return true;

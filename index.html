@@ -971,7 +971,7 @@ function runSequence(midi){
 }
 
 /* ============ VISTA: ENTRENAR ============ */
-const MODS=[["tun","Afinador","En vivo"],["cal","Calentar","Medio tono"],["nota","Notas","Sostener"],["resp","Respirar","Ciclos"],["int","Intervalos","Viajar"],["quiz","Quiz","Reconocer"],["esc","Escalas","Rutas"],["arp","Arpegios","Acordes"],["ritmo","Ritmo","Pulso"],["arm","Armonía","Coro virtual"],["rep","Repertorio","Canción"]];
+const MODS=[["tun","Afinador","En vivo"],["cal","Calentar","Medio tono"],["nota","Notas","Sostener"],["resp","Respirar","Guiada"],["int","Intervalos","Viajar"],["quiz","Quiz","Reconocer"],["esc","Escalas","Rutas"],["arp","Arpegios","Acordes"],["ritmo","Ritmo","Pulso"],["arm","Armonía","Coro virtual"],["rep","Repertorio","Canción"]];
 const modState={cur:"tun",nota:"base",int:4,esc:"mayor",arp:"mayor",arm:"basico",armVoice:"S",asc:"ambas",tempo:72,ritmoP:"negras",ritmoN:"base"};
 function rootMidi(){const p=prof();return p.base}
 const MOD_IC={
@@ -989,6 +989,7 @@ const MOD_IC={
 };
 function renderEntrenar(){
   if(coachOff)coachOff();
+  if(window.__brT){clearInterval(window.__brT);window.__brT=null}try{window.speechSynthesis&&speechSynthesis.cancel()}catch(e){}
   const p=prof();$("#tr-lead").textContent=lastMap()?"Ejercicios ajustados a tu voz: "+p.voice+", nota base "+nm(p.base)+", rango "+nm(p.lo)+"–"+nm(p.hi)+".":"Sin mapa vocal aún: los ejercicios parten de Do4. Haz el diagnóstico para ajustarlos a tu voz.";
   const mods=$("#mods");mods.innerHTML="";
   MODS.forEach(([k,n,s])=>mods.append(h("button",{class:"mod","aria-pressed":modState.cur===k?"true":"false",onclick:()=>{stopAll();modState.cur=k;renderEntrenar()}},h("div",{html:'<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+(MOD_IC[k]||"")+'</svg>'}),h("b",{},n),h("span",{},s))));
@@ -1207,17 +1208,62 @@ function mNota(b){
     coachCard({mode:"one",kind:"nota",targets:()=>[target],hint:"Canta «ma» en la nota elegida y sostenla 3 segundos."}),
     card(...verifyBlock("Verificar "+nm(target),()=>[target],"nota")));
 }
+const BREATHS={
+  diafra:{n:"Diafragmática",d:"Inhala por la nariz llevando el aire al abdomen; exhala lento por la boca. Una mano en el pecho (quieta) y otra en el abdomen (se mueve).",cyc:6,
+    st:[{k:"in",s:4,t:"Inhala",v:"Inhala por la nariz, abdomen afuera"},{k:"out",s:6,t:"Exhala",v:"Exhala lento por la boca"}]},
+  b478:{n:"4-7-8",d:"Inhala 4 segundos por la nariz, sostén 7, exhala 8 por la boca. Calma el sistema nervioso; úsala sentado y no más de 4 ciclos al empezar.",cyc:4,
+    st:[{k:"in",s:4,t:"Inhala",v:"Inhala por la nariz"},{k:"hold",s:7,t:"Sostén",v:"Sostén el aire"},{k:"out",s:8,t:"Exhala",v:"Exhala por la boca, despacio"}]},
+  fuego:{n:"De fuego",d:"Exhalaciones cortas y rápidas por la nariz, bombeando el abdomen; la inhalación es pasiva. Rondas de 30 pulsos con descanso.",cyc:3,fire:true,
+    st:[{k:"pulse",n:30,hz:2,t:"Pulsos",v:"Comienza: exhala con fuerza por la nariz"},{k:"in",s:4,t:"Inhala",v:"Inhala profundo"},{k:"hold",s:6,t:"Sostén",v:"Sostén el aire"},{k:"out",s:6,t:"Exhala",v:"Exhala lento y descansa"}]},
+  relaj:{n:"Relajante",d:"La exhalación es el doble de larga que la inhalación. Suelta los hombros y la mandíbula en cada exhalación.",cyc:6,
+    st:[{k:"in",s:4,t:"Inhala",v:"Inhala suave por la nariz"},{k:"hold",s:2,t:"Pausa",v:"Pausa"},{k:"out",s:8,t:"Exhala",v:"Exhala muy lento, suelta los hombros"}]},
+  canto:{n:"Para cantar (sss)",d:"La afinación necesita aire estable. Hombros quietos, el abdomen se expande al inhalar y sueltas el aire parejo con «sss».",cyc:5,coach:true,
+    st:[{k:"in",s:4,t:"Inhala",v:"Inhala por la nariz"},{k:"hold",s:2,t:"Sostén",v:"Sostén"},{k:"out",s:6,t:"Exhala sss",v:"Exhala con ese, parejo"}]}
+};
+function speak(t){try{if(!window.speechSynthesis)return;const u=new SpeechSynthesisUtterance(t);u.lang="es-ES";const v=speechSynthesis.getVoices().find(x=>/^es/i.test(x.lang));if(v){u.voice=v;u.lang=v.lang}u.rate=.92;speechSynthesis.speak(u)}catch(e){}}
 function mResp(b){
-  const circle=h("div",{class:"breath"},h("b",{},"Listo"));const lab=h("p",{class:"muted",style:"text-align:center"},"Inhala 4 · sostén 2 · exhala con «sss» 6 · cinco ciclos");
-  let running=false,ph="idle";
-  const start=()=>{stopAll();running=true;let cyc=0;const one=()=>{if(!running)return;if(cyc>=5){circle.firstChild.textContent="Hecho";circle.style.transform="scale(.6)";running=false;ph="idle";return}cyc++;ph="in";
-    circle.style.transitionDuration="4s";circle.style.transform="scale(1)";circle.firstChild.textContent="Inhala";
-    later(()=>{ph="hold";circle.firstChild.textContent="Sostén"},4000);
-    later(()=>{ph="out";circle.style.transitionDuration="6s";circle.style.transform="scale(.6)";circle.firstChild.textContent="Exhala sss"},6000);
-    later(()=>{lab.textContent="Ciclo "+cyc+" de 5 terminado";one()},12000)};one()};
-  b.append(card(h("h2",{},"Respiración guiada"),h("p",{class:"muted"},"La afinación necesita aire estable. Hombros quietos, el abdomen se expande al inhalar."),circle,lab,
-    h("div",{class:"row",style:"justify-content:center"},h("button",{class:"btn primary",onclick:start},"Comenzar"),h("button",{class:"btn ghost",onclick:()=>{running=false;ph="idle";stopAll();circle.firstChild.textContent="Listo";circle.style.transform="scale(.6)"}},"Detener"))));
-  b.append(breathCoach(()=>ph));
+  const key=BREATHS[modState.breath]?modState.breath:"diafra",B=BREATHS[key];
+  const sel=h("select",{id:"br-sel"},Object.entries(BREATHS).map(([k,v])=>h("option",{value:k},v.n)));sel.value=key;
+  sel.addEventListener("change",()=>{modState.breath=sel.value;breathStop();renderEntrenar()});
+  const circle=h("div",{class:"breath","aria-hidden":"true"},h("b",{},"Listo"));
+  const count=h("div",{class:"freq",style:"text-align:center;font-size:3.2rem;line-height:1",role:"timer","aria-live":"off"},"—");
+  const lab=h("p",{class:"muted",style:"text-align:center;min-height:1.5em",role:"status"},"Pulsa «Comenzar». Ciclos: "+B.cyc);
+  const bar=h("div",{class:"bar"},h("i",{style:"width:0%"}));
+  const hasVoice=!!window.speechSynthesis;
+  const vz=h("input",{type:"checkbox",id:"br-voz"});vz.checked=modState.voz!==false;vz.addEventListener("change",()=>{modState.voz=vz.checked;if(!vz.checked)try{speechSynthesis.cancel()}catch(e){}});
+  let ph="idle";window.__breath={ph:()=>ph};
+  function breathStop(){if(window.__brT){clearInterval(window.__brT);window.__brT=null}try{window.speechSynthesis&&speechSynthesis.cancel()}catch(e){}}
+  const idle=()=>{ph="idle";circle.style.transitionDuration=".6s";circle.style.transform="scale(.6)";circle.firstChild.textContent="Listo";count.textContent="—";bar.firstChild.style.width="0%"};
+  const start=()=>{
+    stopAll();breathStop();
+    const tl=[];let t=0;
+    for(let c=1;c<=B.cyc;c++)B.st.forEach(s=>{const d=s.k==="pulse"?s.n/s.hz:s.s;tl.push({s,c,a:t,e:t+d,d});t+=d});
+    const total=t,t0=performance.now();let cur=-1,lastPulse=0;
+    const say=x=>{if(vz.checked&&hasVoice)speak(x)};
+    window.__brT=setInterval(()=>{
+      const el=(performance.now()-t0)/1000;
+      if(el>=total){breathStop();idle();circle.firstChild.textContent="Hecho";lab.textContent="Terminaste los "+B.cyc+(B.fire?" rondas":" ciclos")+". Respira normal.";say("Muy bien. Respira con normalidad.");return}
+      const i=tl.findIndex(x=>el<x.e);const x=tl[i];
+      if(i!==cur){cur=i;ph=key==="canto"?x.s.k:"idle";lastPulse=0;
+        lab.textContent=(B.fire?"Ronda ":"Ciclo ")+x.c+" de "+B.cyc;
+        circle.firstChild.textContent=x.s.t;
+        if(x.s.k==="in"){circle.style.transitionDuration=x.d+"s";circle.style.transform="scale(1)"}
+        else if(x.s.k==="out"){circle.style.transitionDuration=x.d+"s";circle.style.transform="scale(.6)"}
+        else if(x.s.k==="hold"){circle.style.transitionDuration=".3s"}
+        say((x.s.k==="in"&&x.c===B.cyc&&B.cyc>1?"Último "+(B.fire?"ronda. ":"ciclo. "):"")+x.s.v)}
+      const inStep=el-x.a;
+      if(x.s.k==="pulse"){const n=Math.min(x.s.n,Math.floor(inStep*x.s.hz)+1);count.textContent=n+" / "+x.s.n;
+        if(n!==lastPulse){lastPulse=n;click(ac().currentTime,n%10===1);circle.style.transitionDuration=".12s";circle.style.transform=n%2?"scale(.95)":"scale(.7)"}}
+      else count.textContent=String(Math.max(1,Math.ceil(x.d-inStep)));
+      bar.firstChild.style.width=clamp(el/total*100,0,100)+"%";
+    },100);
+  };
+  b.append(card(h("h2",{},"Respiración guiada"),h("label",{class:"field"},"Tipo de respiración",sel),h("p",{class:"muted"},B.d),
+    B.fire?h("p",{class:"disclaimer"},"Respiración de fuego: no la practiques si estás embarazada o tienes hipertensión, epilepsia o problemas del corazón. Si te mareas, detente y respira normal."):null,
+    circle,count,lab,bar,
+    hasVoice?h("label",{class:"row small",style:"gap:8px;font-weight:600;justify-content:center"},vz,"Voz que guía la respiración"):null,
+    h("div",{class:"row",style:"justify-content:center"},h("button",{class:"btn primary",onclick:start},"Comenzar"),h("button",{class:"btn ghost",onclick:()=>{breathStop();stopAll();idle();lab.textContent="Detenido."}},"Detener"))));
+  if(B.coach)b.append(breathCoach(()=>ph));
 }
 function mInt(b){
   const p=prof();let root=nearOct(p.base,p.lo+3);if(root+12>p.hi+2)root=Math.max(p.lo,p.hi-12);
@@ -1830,7 +1876,7 @@ const VIEWS=["inicio","vocalmap","entrenar","mapa","plan","progreso","profe"];
 function curView(){const v=location.hash.slice(1);return VIEWS.includes(v)?v:"inicio"}
 function route(soft){
   let v=curView();if(v==="profe"&&!CLOUD.teacher&&CLOUD.ready)v="inicio";
-  if(soft!==true){stopAll();micStop()}
+  if(soft!==true){stopAll();micStop();if(window.__brT){clearInterval(window.__brT);window.__brT=null}try{window.speechSynthesis&&speechSynthesis.cancel()}catch(e){}}
   VIEWS.forEach(x=>{$("#v-"+x).hidden=x!==v});
   document.querySelectorAll(".tabs a").forEach(a=>a.setAttribute("aria-current",a.dataset.v===v?"page":"false"));
   ({inicio:renderHome,vocalmap:()=>{renderVMCapture();renderVMResult()},entrenar:renderEntrenar,mapa:renderMapa,plan:renderPlan,progreso:renderProgreso,

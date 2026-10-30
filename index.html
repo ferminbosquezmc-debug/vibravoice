@@ -279,6 +279,20 @@ details.fold>div{padding-bottom:18px;display:flex;flex-direction:column;gap:12px
   .tu-viz .wheel{max-width:220px}.tu-help{display:none}
   .tu-live .freq{font-size:1.5rem}
 }
+/* Diagnóstico: captura y rueda en vivo, lado a lado */
+.vm-grid{display:grid;gap:14px}
+.vm-live{display:flex;flex-direction:column;gap:6px;align-items:stretch}
+.vm-live .freq{font-size:2rem;line-height:1.1}
+.vm-live .wheel{max-width:min(100%,240px)}
+@media (min-width:560px){
+  .vm-grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr);column-gap:20px;align-items:center}
+  .vm-live .wheel{max-width:min(320px,max(200px,calc(100vh - 220px)))}
+}
+@media (min-width:560px) and (max-height:480px){
+  .vm-live .wheel{max-width:190px}.vm-live .freq{font-size:1.5rem}
+  .vm-ctl{gap:8px}.vm-ctl h2{font-size:1.2rem}.vm-ctl>p.muted,.vm-ctl .drop>.small{display:none}
+  .vm-ctl .rv{max-height:64px}.vm-ctl .drop{padding:10px}
+}
 </style>
 
 </head>
@@ -681,7 +695,7 @@ function micRecord(sec,onTick){
   return new Promise(res=>{let un;un=micSub(p=>{frames.push(p.midi);const el=(performance.now()-t0)/1000;if(onTick)onTick(el,p);
     if(el>=sec){un();const sm=smoothFrames(frames);res({frames:sm,hopSec:sec/Math.max(1,frames.length),voiced:sm.filter(v=>v!=null),dur:sec})}});liveUn.push(un)});
 }
-function micRecorderUI(onFile,secs,st){
+function micRecorderUI(onFile,secs,st,onLive){
   const note=h("b",{class:"rec-note"},"—"),prog=h("div",{class:"bar"},h("i",{style:"width:0%"})),left=h("span",{class:"small muted mono"},"");
   const live=h("div",{class:"rec-live",hidden:true},note,prog,left);
   const btn=h("button",{class:"btn primary sm",type:"button"},"Grabar con micrófono");
@@ -692,10 +706,10 @@ function micRecorderUI(onFile,secs,st){
     for(let k=3;k>0;k--){note.textContent=String(k);st.textContent="Prepárate y respira…";await new Promise(r=>setTimeout(r,650))}
     st.textContent="Grabando: canta ahora";const hist=[];
     const an=await micRecord(S2,(el,p)=>{
-      if(p.midi!=null){hist.push(p.midi);if(hist.length>5)hist.shift();note.textContent=nm([...hist].sort((a,b)=>a-b)[hist.length>>1])}else note.textContent="…";
+      if(p.midi!=null){hist.push(p.midi);if(hist.length>5)hist.shift();const md=[...hist].sort((a,b)=>a-b)[hist.length>>1];note.textContent=nm(md);if(onLive)onLive(md,el,S2)}else{note.textContent="…";if(onLive)onLive(null,el,S2)}
       prog.firstChild.style.width=clamp(el/S2*100,0,100)+"%";left.textContent=Math.max(0,S2-el).toFixed(1)+" s";
     });
-    live.hidden=true;st.textContent="";
+    live.hidden=true;st.textContent="";if(onLive)onLive(undefined);
     try{await onFile(an,null,st)}catch(e){st.textContent="No pude analizar la grabación. Inténtalo de nuevo."}
     btn.disabled=false;btn.textContent="Grabar otra vez";
   });
@@ -703,13 +717,13 @@ function micRecorderUI(onFile,secs,st){
 }
 
 /* Uploader reutilizable: devuelve elemento; onFile(file) */
-function uploader(label,onFile,secs){
+function uploader(label,onFile,secs,onLive){
   const st=h("div",{class:"small muted"},MIC.ok?"Toca «Grabar con micrófono» y permite el acceso la primera vez. También puedes subir un audio.":"Formatos de audio comunes (m4a, mp3, wav, ogg, webm). Graba 4–8 segundos.");
   const pick=(capture)=>{const inp=h("input",{type:"file",accept:"audio/*,.m4a,.mp3,.wav,.ogg,.webm,.aac,.flac","aria-label":label});if(capture)inp.setAttribute("capture","");
     inp.addEventListener("change",async()=>{const f=inp.files&&inp.files[0];if(!f)return;st.textContent="Analizando «"+f.name+"»…";
       try{await new Promise(r=>setTimeout(r,30));const an=await analyze(f);st.textContent="";await onFile(an,f,st)}catch(e){st.textContent="No pude leer ese audio. Prueba con otro formato (m4a, mp3 o wav)."}
       inp.value=""});return inp};
-  const rec=MIC.ok?micRecorderUI(onFile,secs||5,st):null;
+  const rec=MIC.ok?micRecorderUI(onFile,secs||5,st,onLive):null;
   return h("div",{class:"drop"},h("b",{},label),h("div",{class:"row"},
     rec?rec[0]:h("span",{class:"btn primary sm file-btn"},"Grabar con el teléfono",pick(true)),
     h("span",{class:"btn sm file-btn"},rec?"Subir audio":"Elegir archivo",pick(false))),rec?rec[1]:null,st);
@@ -820,25 +834,35 @@ function rangeViz(cur){
   for(const k of ["grave","comoda","aguda"]){const [x,l]=P[k],on=k===cur,ok=!!vmTmp[k];
     s+='<circle cx="'+x+'" cy="35" r="'+(on?15:11)+'" fill="'+(on?"var(--accent)":ok?"var(--good)":"var(--surface)")+'" stroke="'+(on?"var(--accent)":ok?"var(--good)":"var(--line)")+'" stroke-width="2"/>'
      +'<text x="'+x+'" y="'+(on?40:39)+'" text-anchor="middle" font-size="'+(on?14:12)+'" font-weight="700" fill="'+(on||ok?"#fff":"var(--muted)")+'">'+(ok&&!on?"✓":"♪")+'</text>'
-     +'<text x="'+x+'" y="72" text-anchor="middle" font-size="13" font-weight="'+(on?700:500)+'" fill="'+(on?"var(--accent)":"var(--muted)")+'">'+l+'</text>'}
+     +'<text x="'+x+'" y="72" text-anchor="middle" font-size="13" font-weight="'+(on?700:500)+'" fill="'+(on?"var(--accent)":"var(--muted)")+'">'+l+(ok&&!on?" · "+nm(vmTmp[k].note):"")+'</text>'}
   return h("div",{html:s})}
 let vmStep=0;
 function renderVMCapture(){
   const el=$("#vm-capture");el.innerHTML="";const st=VM_STEPS[vmStep];
-  el.append(h("div",{class:"steps-prog"},VM_STEPS.map((_,i)=>h("i",{class:i<=vmStep?"on":""}))),
+  const svg=document.createElementNS("http://www.w3.org/2000/svg","svg");svg.setAttribute("viewBox","0 0 360 360");svg.setAttribute("class","wheel");
+  const w=buildWheel(svg,null);const prevN=vmTmp[st.k];w.set({base:prevN?pc(prevN.note):undefined});
+  const big=h("div",{class:"freq",style:"text-align:center"},prevN?nm(prevN.note):"—"),cap=h("div",{class:"small muted",style:"text-align:center",role:"status"},prevN?"Detectado en este paso":"Aquí verás la nota que cantas");
+  const barL=h("div",{class:"bar"},h("i",{style:"width:0%"}));
+  const onLive=(md,t,S2)=>{
+    if(md===undefined){w.set({base:prevN?pc(prevN.note):undefined});return}
+    if(md==null){big.textContent="…";cap.textContent="Sigue cantando «ma»";return}
+    big.textContent=nm(md);cap.textContent="Cantando ahora";w.set({on:pc(Math.round(md))});barL.firstChild.style.width=clamp(t/S2*100,0,100)+"%"};
+  const left=h("div",{class:"vm-ctl"},
+    h("div",{class:"steps-prog"},VM_STEPS.map((_,i)=>h("i",{class:i<=vmStep?"on":""}))),
     h("div",{class:"small muted"},"Paso "+(vmStep+1)+" de 3"),h("h2",{},st.t),rangeViz(st.k),h("p",{class:"muted"},st.d));
   const prev=vmTmp[st.k];
-  if(prev)el.append(h("div",{class:"result"},h("b",{},"Detectado: "+nm(prev.note)+" · "+mf(prev.med).toFixed(1)+" Hz"),h("span",{class:"small muted"},"Estabilidad ±"+Math.round(prev.mad)+" cents · "+prev.voicedSec.toFixed(1)+" s con voz")));
-  el.append(uploader("Captura: "+st.t.toLowerCase(),async(an,f,stEl)=>{
+  if(prev)left.append(h("div",{class:"result"},h("b",{},"Detectado: "+nm(prev.note)+" · "+mf(prev.med).toFixed(1)+" Hz"),h("span",{class:"small muted"},"Estabilidad ±"+Math.round(prev.mad)+" cents · "+prev.voicedSec.toFixed(1)+" s con voz")));
+  left.append(uploader("Captura: "+st.t.toLowerCase(),async(an,f,stEl)=>{
     const s=summary(an);if(!s){stEl.textContent="No detecté una nota sostenida. Graba más cerca del micrófono, con «ma» continuo.";return}
     vmTmp[st.k]=s;
     if(vmStep<2){vmStep++;renderVMCapture()}else{buildMap()}
-  }));
+  },5,onLive));
   const nav=h("div",{class:"row"});
   if(vmStep>0)nav.append(h("button",{class:"btn sm ghost",onclick:()=>{vmStep--;renderVMCapture()}},"Paso anterior"));
   if(prev&&vmStep<2)nav.append(h("button",{class:"btn sm",onclick:()=>{vmStep++;renderVMCapture()}},"Siguiente paso"));
   if(prev&&vmStep===2)nav.append(h("button",{class:"btn sm primary",onclick:buildMap},"Generar mapa"));
-  el.append(nav);
+  left.append(nav);
+  el.append(h("div",{class:"vm-grid"},left,h("div",{class:"vm-live"},big,cap,svg,barL)));
 }
 function classify(lo,hi){let best=null;for(const v of VOICES){const ov=Math.max(0,Math.min(hi,v.hi)-Math.max(lo,v.lo)),un=Math.max(hi,v.hi)-Math.min(lo,v.lo);const sc=ov/un-.015*Math.abs((lo+hi)/2-(v.lo+v.hi)/2);if(!best||sc>best.sc)best={sc,v}}return best.v.n}
 function routeFor(m){

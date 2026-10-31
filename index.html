@@ -5,6 +5,19 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#06131A">
 <meta name="description" content="VibraVoice 12D Tutor: tutor de canto virtual con afinador en vivo, mapa vocal 12D y programa de 30 días.">
+<link rel="canonical" href="https://ferminbosquezmc-debug.github.io/vibravoice/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="VibraVoice 12D Tutor">
+<meta property="og:locale" content="es_PA">
+<meta property="og:url" content="https://ferminbosquezmc-debug.github.io/vibravoice/">
+<meta property="og:title" content="VibraVoice 12D Tutor · Tutor de canto virtual">
+<meta property="og:description" content="Afinador en vivo, mapa vocal 12D y programa de 30 días para entrenar tu voz desde el celular.">
+<meta property="og:image" content="https://ferminbosquezmc-debug.github.io/vibravoice/icon-512.png">
+<meta property="og:image:width" content="512">
+<meta property="og:image:height" content="512">
+<meta property="og:image:alt" content="Logo de VibraVoice 12D Tutor">
+<meta name="twitter:card" content="summary">
+<meta name="author" content="Fermín Bosquez Mc Kenzie">
 <link rel="icon" type="image/png" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-512.png">
 <link rel="manifest" href="manifest.webmanifest">
@@ -272,7 +285,7 @@ details.fold>div{padding-bottom:18px;display:flex;flex-direction:column;gap:12px
 .tu-live .freq{font-size:2rem;line-height:1.1}
 @media (min-width:560px){
   .tu-grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-areas:"top head" "live head" "viz viz";grid-template-rows:auto 1fr auto;align-items:start;column-gap:20px}
-  .tu-top{grid-area:top}.tu-live{grid-area:live;align-self:start}.tu-viz{grid-area:viz;align-self:center}
+  .tu-top{grid-area:top}.tu-live{grid-area:live;align-self:start}.tu-viz{grid-area:viz;align-self:center}.tu-head{grid-area:head}
   .tu-viz .wheel{max-width:min(360px,max(200px,calc(100vh - 170px)))}
   .tu-top .btn{padding:10px 14px;min-height:44px}
   .tu-top .row{flex-wrap:nowrap}.tu-top .btn{font-size:.9rem;white-space:nowrap}
@@ -314,7 +327,6 @@ details.fold>div{padding-bottom:18px;display:flex;flex-direction:column;gap:12px
 .map-viz{display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center}
 .map-tail{display:flex;flex-direction:column;gap:12px}
 .tri{display:grid;gap:14px}.tri>.a,.tri>.b,.tri>.c{min-width:0}
-.tu-head{grid-area:head}
 @media (min-width:700px){
   .coach-wide{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,.8fr);gap:20px;align-items:start}
   .coach-wide .headpanel{position:sticky;top:84px}
@@ -325,8 +337,15 @@ details.fold>div{padding-bottom:18px;display:flex;flex-direction:column;gap:12px
   .tri{grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-areas:"a c" "b b"}
   .tri>.a{grid-area:a}.tri>.b{grid-area:b}.tri>.c{grid-area:c}
 }
-.sitefoot{max-width:720px;margin:0 auto;padding:0 20px 96px;margin-top:-100px;text-align:center;color:var(--muted);font-size:.85rem;display:flex;flex-direction:column;gap:4px}
-.sitefoot a{color:var(--accent);font-weight:600}
+.sitefoot{max-width:720px;margin:-100px auto 0;padding:0 max(16px,env(safe-area-inset-left,0px)) 104px;text-align:center;color:var(--muted);font-size:.85rem}
+.sitefoot .ft-in{border-top:1px solid var(--line);padding-top:18px;display:flex;flex-direction:column;align-items:center;gap:8px}
+.sitefoot .ft-name{font-family:var(--display);font-size:1.05rem;font-weight:600;color:var(--fg)}
+.sitefoot .ft-name b{color:var(--accent);font-weight:600}
+.sitefoot .ft-links{display:flex;flex-wrap:wrap;justify-content:center;gap:8px}
+.sitefoot .ft-links a{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:6px 14px;border:1px solid var(--line);border-radius:999px;background:var(--surface);color:var(--fg);font-weight:600;text-decoration:none}
+.sitefoot .ft-links a:hover{border-color:var(--accent);color:var(--accent)}
+.sitefoot .ft-links svg{width:16px;height:16px;flex:none}
+.sitefoot .ft-copy{font-size:.78rem}
 .micbanner{position:fixed;left:12px;right:12px;top:72px;z-index:60;max-width:640px;margin:0 auto;background:var(--surface);border:2px solid var(--bad);border-radius:16px;padding:14px 16px;box-shadow:0 8px 28px rgba(0,0,0,.2);display:flex;flex-direction:column;gap:10px}
 .micbanner p{font-weight:600}
 </style>
@@ -441,7 +460,7 @@ details.fold>div{padding-bottom:18px;display:flex;flex-direction:column;gap:12px
   <div class="card" id="pf-invite"></div>
 </section>
 </main>
-<footer class="sitefoot"><p>VibraVoice 12D Tutor™ · Fermín Bosquez Mc Kenzie · Panamá</p><p><a href="https://ferminbosquezmc-debug.github.io/vibravoice/" target="_blank" rel="noopener">Sitio web: ferminbosquezmc-debug.github.io/vibravoice</a></p><p><a href="mailto:ferminbosquezmc@gmail.com">ferminbosquezmc@gmail.com</a> · <a href="tel:+50768346940">+507 6834-6940</a></p></footer>
+<footer class="sitefoot"><div class="ft-in"><p class="ft-name">Vibra<b>Voice</b> 12D Tutor™</p><p>Método de Fermín Bosquez Mc Kenzie · Panamá</p><p class="ft-links"><a href="mailto:ferminbosquezmc@gmail.com"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>Correo</a><a href="https://wa.me/50768346940" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 20l1.3-3.9A8 8 0 1 1 8 19z"/><path d="M9 9.5c.3 2 1.8 3.8 4 4.6l1.2-1.2 2 .8-.4 1.8c-3.6.2-7.4-3.4-7.6-7l1.8-.4.8 2z"/></svg>WhatsApp</a><a href="tel:+50768346940"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/></svg>+507 6834-6940</a></p><p class="ft-copy">© <span id="ft-year">2026</span> VibraVoice. Uso educativo y complementario.</p></div></footer>
 
 <nav class="tabs" aria-label="Secciones"><div class="tabs-in">
   <a href="#inicio" data-v="inicio"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg><span>Inicio</span></a>
@@ -455,6 +474,7 @@ details.fold>div{padding-bottom:18px;display:flex;flex-direction:column;gap:12px
 
 <script>
 "use strict";
+try{document.getElementById("ft-year").textContent=new Date().getFullYear()}catch(e){}
 /* ============ DATOS DEL MÉTODO ============ */
 const NAMES=["Do","Do#","Re","Re#","Mi","Fa","Fa#","Sol","Sol#","La","La#","Si"];
 const DIMS=[

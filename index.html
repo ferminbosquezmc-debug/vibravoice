@@ -349,7 +349,7 @@ details.fold>div{padding-bottom:18px;display:flex;flex-direction:column;gap:12px
 @media (min-width:720px){.feat-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media (min-width:960px){
   #v-inicio{max-width:1080px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);column-gap:56px;row-gap:16px;align-items:start}
-  #v-inicio>.hero{grid-column:1;grid-row:1/span 4;position:sticky;top:96px;padding-top:24px}
+  #v-inicio>.hero{grid-column:1;grid-row:1/span 4;padding-top:24px}
   #v-inicio>.hero h1{font-size:3.6rem}
   #v-inicio>.hero .hero-logo{width:180px!important}
   #v-inicio>.path,#v-inicio>#home-status,#v-inicio>details{grid-column:2}
@@ -358,6 +358,28 @@ details.fold>div{padding-bottom:18px;display:flex;flex-direction:column;gap:12px
   #v-inicio>.feat{padding-top:40px}
   .top-in{max-width:1080px}
 }
+/* Sobre el autor */
+.about{display:grid;gap:16px;padding:20px;border:1px solid var(--line);border-radius:22px;background:var(--surface);margin-top:8px}
+.ab-photo img{width:132px;height:132px;object-fit:cover;border-radius:20px;display:block;border:3px solid var(--surface);box-shadow:0 0 0 2px var(--accent)}
+.ab-text{display:flex;flex-direction:column;gap:12px;min-width:0}
+.ab-text p{color:var(--fg);max-width:62ch}
+.ab-role{font-weight:600;color:var(--muted)!important;margin-top:-6px}
+.ab-chips{list-style:none;margin:4px 0 0;padding:0;display:flex;flex-wrap:wrap;gap:6px}
+.ab-chips li{font-size:.8rem;font-weight:600;padding:5px 11px;border-radius:999px;background:color-mix(in srgb,var(--accent) 12%,var(--surface));color:var(--fg);border:1px solid color-mix(in srgb,var(--accent) 30%,var(--line))}
+.ab-stage{margin:0;position:relative;border-radius:18px;overflow:hidden;aspect-ratio:16/10;background:#06131A}
+.ab-stage img{width:100%;height:100%;object-fit:cover;object-position:center 22%;display:block}
+.ab-stage figcaption{position:absolute;inset:auto 0 0;padding:48px 18px 16px;background:linear-gradient(transparent,rgba(4,12,18,.88));color:#fff;font-family:var(--display);font-style:italic;font-size:1.15rem;line-height:1.3}
+.ab-stage figcaption span{color:#FF7B2F;font-style:normal}
+.ab-cta{display:flex}
+.ab-cta .btn{text-decoration:none}
+@media (min-width:720px){
+  .about{grid-template-columns:220px minmax(0,1fr);column-gap:32px;padding:28px;align-items:start}
+  .ab-photo img{width:220px;height:auto;aspect-ratio:1}
+  .ab-stage,.ab-cta{grid-column:1/-1}
+  .ab-stage{aspect-ratio:21/9}
+  .ab-stage figcaption{font-size:1.5rem;padding:60px 28px 22px}
+}
+@media (min-width:960px){#v-inicio>.about{grid-column:1/-1}}
 .sitefoot{max-width:720px;margin:-100px auto 0;padding:0 max(16px,env(safe-area-inset-left,0px)) 104px;text-align:center;color:var(--muted);font-size:.85rem}
 .sitefoot .ft-in{border-top:1px solid var(--line);padding-top:18px;display:flex;flex-direction:column;align-items:center;gap:8px}
 .sitefoot .ft-name{font-family:var(--display);font-size:1.05rem;font-weight:600;color:var(--fg)}
@@ -404,6 +426,7 @@ details.fold>div{padding-bottom:18px;display:flex;flex-direction:column;gap:12px
     </div>
   </div></details>
   <section class="feat" aria-labelledby="feat-h"><div class="eyebrow">Qué incluye</div><h2 id="feat-h">Todo para entrenar tu voz, en tu teléfono</h2><div class="feat-grid"><a class="ft-card" href="#vocalmap"><span class="fi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 12h2l2-6 3 12 3-9 2 3h4"/></svg></span><b>VocalMap 12D™</b><small>Descubre tu rango y tu nota base con tres grabaciones cortas.</small></a><a class="ft-card" href="#entrenar"><span class="fi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></span><b>Afinador en vivo</b><small>Te dice al instante si estás alto, bajo o afinado.</small></a><a class="ft-card" href="#mapa"><span class="fi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="2.5"/><circle cx="12" cy="4.5" r="1"/><circle cx="19" cy="10" r="1"/><circle cx="5" cy="10" r="1"/></svg></span><b>Mapa Craneal 12D™</b><small>Escucha cada nota en su zona del cráneo con audio espacial.</small></a><a class="ft-card" href="#entrenar"><span class="fi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 18h4v-4h4v-4h4V6h4"/></svg></span><b>Diez ejercicios</b><small>Calentamiento, respiración, intervalos, escalas, arpegios y repertorio.</small></a><a class="ft-card" href="#plan"><span class="fi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4M8 15l2 2 4-4"/></svg></span><b>Programa de 30 días</b><small>Una tarea clara cada día, ajustada a tu voz.</small></a><a class="ft-card" href="#progreso"><span class="fi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 3l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.4 6.8 19.1l1-5.8L3.5 9.2l5.9-.9z"/></svg></span><b>VibraScore™ y certificado</b><small>Mide tu avance y descarga tu certificado y hoja del alumno.</small></a></div><p class="muted small">Funciona en el navegador, se instala como app y tu voz se analiza en tu propio equipo: no se envía a ningún servidor.</p></section>
+  <section class="about" id="autor" aria-labelledby="about-h"><div class="ab-photo"><img src="autor.jpg" alt="Retrato de Fermín Bósquez Mc Kenzie" width="640" height="640" loading="lazy" decoding="async"></div><div class="ab-text"><div class="eyebrow">Sobre el autor</div><h2 id="about-h">Fermín Bósquez Mc Kenzie</h2><p class="ab-role">Músico, cantautor y musicoterapeuta · Colón, Panamá</p><p>Fermín nació en Colón, Panamá, y desde joven ha unido la música con el servicio a los demás. Ha sido músico, ministro y pastor asistente, y hoy es cantautor y mentor de parejas.</p><p>Estudió música y se diplomó en musicoterapia, en Mindfulness (atención plena) y en PNL (programación neurolingüística). De esa unión entre la voz, la atención al cuerpo y la gestión de las emociones nace el método VibraVoice 12D.</p><p>Es fundador de Fullness Institute, un centro dedicado al bienestar integral de las personas a través de terapias holísticas, y trabaja como voluntario con jóvenes de distintos colegios en reglas de conducta y gestión de las emociones.</p><ul class="ab-chips"><li>Estudios de música</li><li>Musicoterapeuta</li><li>Diplomado en Mindfulness</li><li>Diplomado en PNL</li><li>Cantautor</li><li>Fundador de Fullness Institute</li></ul></div><figure class="ab-stage"><img src="autor-escena.jpg" alt="Fermín Bósquez cantando en un escenario" width="900" height="900" loading="lazy" decoding="async"><figcaption><span>«</span>La fe, la música y el bienestar emocional, en un mismo camino.<span>»</span></figcaption></figure><p class="ab-cta"><a class="btn primary" href="https://wa.me/50768346940?text=Hola%20Ferm%C3%ADn%2C%20quiero%20informaci%C3%B3n%20sobre%20VibraVoice" target="_blank" rel="noopener">Escríbele a Fermín por WhatsApp</a></p></section>
   <p class="disclaimer">Uso educativo; no sustituye evaluación médica, auditiva ni fonoaudiológica.</p>
 </section>
 

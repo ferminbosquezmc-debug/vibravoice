@@ -5,6 +5,19 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#06131A">
 <meta name="description" content="VibraVoice 12D Tutor: tutor de canto virtual con afinador en vivo, mapa vocal 12D y programa de 30 días.">
+<link rel="canonical" href="https://ferminbosquezmc-debug.github.io/vibravoice/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="VibraVoice 12D Tutor">
+<meta property="og:locale" content="es_PA">
+<meta property="og:url" content="https://ferminbosquezmc-debug.github.io/vibravoice/">
+<meta property="og:title" content="VibraVoice 12D Tutor · Tutor de canto virtual">
+<meta property="og:description" content="Afinador en vivo, mapa vocal 12D y programa de 30 días para entrenar tu voz desde el celular.">
+<meta property="og:image" content="https://ferminbosquezmc-debug.github.io/vibravoice/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="VibraVoice 12D Tutor: Tu voz tiene un mapa. Vamos a descubrirlo.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="author" content="Fermín Bósquez Mc Kenzie">
 <link rel="icon" type="image/png" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-512.png">
 <link rel="manifest" href="manifest.webmanifest">
@@ -272,7 +285,7 @@ details.fold>div{padding-bottom:18px;display:flex;flex-direction:column;gap:12px
 .tu-live .freq{font-size:2rem;line-height:1.1}
 @media (min-width:560px){
   .tu-grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-areas:"top head" "live head" "viz viz";grid-template-rows:auto 1fr auto;align-items:start;column-gap:20px}
-  .tu-top{grid-area:top}.tu-live{grid-area:live;align-self:start}.tu-viz{grid-area:viz;align-self:center}
+  .tu-top{grid-area:top}.tu-live{grid-area:live;align-self:start}.tu-viz{grid-area:viz;align-self:center}.tu-head{grid-area:head}
   .tu-viz .wheel{max-width:min(360px,max(200px,calc(100vh - 170px)))}
   .tu-top .btn{padding:10px 14px;min-height:44px}
   .tu-top .row{flex-wrap:nowrap}.tu-top .btn{font-size:.9rem;white-space:nowrap}
@@ -314,7 +327,6 @@ details.fold>div{padding-bottom:18px;display:flex;flex-direction:column;gap:12px
 .map-viz{display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center}
 .map-tail{display:flex;flex-direction:column;gap:12px}
 .tri{display:grid;gap:14px}.tri>.a,.tri>.b,.tri>.c{min-width:0}
-.tu-head{grid-area:head}
 @media (min-width:700px){
   .coach-wide{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,.8fr);gap:20px;align-items:start}
   .coach-wide .headpanel{position:sticky;top:84px}
@@ -325,8 +337,58 @@ details.fold>div{padding-bottom:18px;display:flex;flex-direction:column;gap:12px
   .tri{grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-areas:"a c" "b b"}
   .tri>.a{grid-area:a}.tri>.b{grid-area:b}.tri>.c{grid-area:c}
 }
-.sitefoot{max-width:720px;margin:0 auto;padding:0 20px 96px;margin-top:-100px;text-align:center;color:var(--muted);font-size:.85rem;display:flex;flex-direction:column;gap:4px}
-.sitefoot a{color:var(--accent);font-weight:600}
+/* Inicio: secciones y vista ancha */
+.feat{display:flex;flex-direction:column;gap:12px;padding-top:6px}
+.feat-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.ft-card{display:flex;flex-direction:column;gap:4px;padding:14px;border:1px solid var(--line);border-radius:16px;background:var(--surface);color:inherit;text-decoration:none;transition:border-color .15s,transform .15s}
+.ft-card:hover{border-color:var(--accent);transform:translateY(-1px)}
+.ft-card .fi{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;background:color-mix(in srgb,var(--accent) 14%,var(--surface));color:var(--accent);margin-bottom:4px}
+.ft-card svg{width:20px;height:20px}
+.ft-card b{font-size:.98rem;line-height:1.25}
+.ft-card small{color:var(--muted);font-size:.84rem;line-height:1.4}
+@media (min-width:720px){.feat-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (min-width:960px){
+  #v-inicio{max-width:1080px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);column-gap:56px;row-gap:16px;align-items:start}
+  #v-inicio>.hero{grid-column:1;grid-row:1/span 4;padding-top:24px}
+  #v-inicio>.hero h1{font-size:3.6rem}
+  #v-inicio>.hero .hero-logo{width:180px!important}
+  #v-inicio>.path,#v-inicio>#home-status,#v-inicio>details{grid-column:2}
+  #v-inicio>.path{padding-top:24px}
+  #v-inicio>.feat,#v-inicio>.disclaimer{grid-column:1/-1}
+  #v-inicio>.feat{padding-top:40px}
+  .top-in{max-width:1080px}
+}
+/* Sobre el autor */
+.about{display:grid;gap:16px;padding:20px;border:1px solid var(--line);border-radius:22px;background:var(--surface);margin-top:8px}
+.ab-photo img{width:132px;height:132px;object-fit:cover;border-radius:20px;display:block;border:3px solid var(--surface);box-shadow:0 0 0 2px var(--accent)}
+.ab-text{display:flex;flex-direction:column;gap:12px;min-width:0}
+.ab-text p{color:var(--fg);max-width:62ch}
+.ab-role{font-weight:600;color:var(--muted)!important;margin-top:-6px}
+.ab-chips{list-style:none;margin:4px 0 0;padding:0;display:flex;flex-wrap:wrap;gap:6px}
+.ab-chips li{font-size:.8rem;font-weight:600;padding:5px 11px;border-radius:999px;background:color-mix(in srgb,var(--accent) 12%,var(--surface));color:var(--fg);border:1px solid color-mix(in srgb,var(--accent) 30%,var(--line))}
+.ab-stage{margin:0;position:relative;border-radius:18px;overflow:hidden;aspect-ratio:16/10;background:#06131A}
+.ab-stage img{width:100%;height:100%;object-fit:cover;object-position:center 22%;display:block}
+.ab-stage figcaption{position:absolute;inset:auto 0 0;padding:48px 18px 16px;background:linear-gradient(transparent,rgba(4,12,18,.88));color:#fff;font-family:var(--display);font-style:italic;font-size:1.15rem;line-height:1.3}
+.ab-stage figcaption span{color:#FF7B2F;font-style:normal}
+.ab-cta{display:flex}
+.ab-cta .btn{text-decoration:none}
+@media (min-width:720px){
+  .about{grid-template-columns:220px minmax(0,1fr);column-gap:32px;padding:28px;align-items:start}
+  .ab-photo img{width:220px;height:auto;aspect-ratio:1}
+  .ab-stage,.ab-cta{grid-column:1/-1}
+  .ab-stage{aspect-ratio:21/9}
+  .ab-stage figcaption{font-size:1.5rem;padding:60px 28px 22px}
+}
+@media (min-width:960px){#v-inicio>.about{grid-column:1/-1}}
+.sitefoot{max-width:720px;margin:-100px auto 0;padding:0 max(16px,env(safe-area-inset-left,0px)) 104px;text-align:center;color:var(--muted);font-size:.85rem}
+.sitefoot .ft-in{border-top:1px solid var(--line);padding-top:18px;display:flex;flex-direction:column;align-items:center;gap:8px}
+.sitefoot .ft-name{font-family:var(--display);font-size:1.05rem;font-weight:600;color:var(--fg)}
+.sitefoot .ft-name b{color:var(--accent);font-weight:600}
+.sitefoot .ft-links{display:flex;flex-wrap:wrap;justify-content:center;gap:8px}
+.sitefoot .ft-links a{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:6px 14px;border:1px solid var(--line);border-radius:999px;background:var(--surface);color:var(--fg);font-weight:600;text-decoration:none}
+.sitefoot .ft-links a:hover{border-color:var(--accent);color:var(--accent)}
+.sitefoot .ft-links svg{width:16px;height:16px;flex:none}
+.sitefoot .ft-copy{font-size:.78rem}
 .micbanner{position:fixed;left:12px;right:12px;top:72px;z-index:60;max-width:640px;margin:0 auto;background:var(--surface);border:2px solid var(--bad);border-radius:16px;padding:14px 16px;box-shadow:0 8px 28px rgba(0,0,0,.2);display:flex;flex-direction:column;gap:10px}
 .micbanner p{font-weight:600}
 </style>
@@ -363,7 +425,9 @@ details.fold>div{padding-bottom:18px;display:flex;flex-direction:column;gap:12px
       <p><b>3.</b> Sigue el programa de 30 días y mira tu progreso cada semana.</p>
     </div>
   </div></details>
-  <p class="disclaimer">Método creado por Fermín Bosquez Mc Kenzie · Panamá. Uso educativo; no sustituye evaluación médica, auditiva ni fonoaudiológica.</p>
+  <section class="feat" aria-labelledby="feat-h"><div class="eyebrow">Qué incluye</div><h2 id="feat-h">Todo para entrenar tu voz, en tu teléfono</h2><div class="feat-grid"><a class="ft-card" href="#vocalmap"><span class="fi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 12h2l2-6 3 12 3-9 2 3h4"/></svg></span><b>VocalMap 12D™</b><small>Descubre tu rango y tu nota base con tres grabaciones cortas.</small></a><a class="ft-card" href="#entrenar"><span class="fi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></span><b>Afinador en vivo</b><small>Te dice al instante si estás alto, bajo o afinado.</small></a><a class="ft-card" href="#mapa"><span class="fi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="2.5"/><circle cx="12" cy="4.5" r="1"/><circle cx="19" cy="10" r="1"/><circle cx="5" cy="10" r="1"/></svg></span><b>Mapa Craneal 12D™</b><small>Escucha cada nota en su zona del cráneo con audio espacial.</small></a><a class="ft-card" href="#entrenar"><span class="fi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 18h4v-4h4v-4h4V6h4"/></svg></span><b>Diez ejercicios</b><small>Calentamiento, respiración, intervalos, escalas, arpegios y repertorio.</small></a><a class="ft-card" href="#plan"><span class="fi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4M8 15l2 2 4-4"/></svg></span><b>Programa de 30 días</b><small>Una tarea clara cada día, ajustada a tu voz.</small></a><a class="ft-card" href="#progreso"><span class="fi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 3l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.4 6.8 19.1l1-5.8L3.5 9.2l5.9-.9z"/></svg></span><b>VibraScore™ y certificado</b><small>Mide tu avance y descarga tu certificado y hoja del alumno.</small></a></div><p class="muted small">Funciona en el navegador, se instala como app y tu voz se analiza en tu propio equipo: no se envía a ningún servidor.</p></section>
+  <section class="about" id="autor" aria-labelledby="about-h"><div class="ab-photo"><img src="autor.jpg" alt="Retrato de Fermín Bósquez Mc Kenzie" width="640" height="640" loading="lazy" decoding="async"></div><div class="ab-text"><div class="eyebrow">Sobre el autor</div><h2 id="about-h">Fermín Bósquez Mc Kenzie</h2><p class="ab-role">Músico, cantautor y musicoterapeuta · Colón, Panamá</p><p>Fermín nació en Colón, Panamá, y desde joven ha unido la música con el servicio a los demás. Ha sido músico, ministro y pastor asistente, y hoy es cantautor y mentor de parejas.</p><p>Estudió música y se diplomó en musicoterapia, en Mindfulness (atención plena) y en PNL (programación neurolingüística). De esa unión entre la voz, la atención al cuerpo y la gestión de las emociones nace el método VibraVoice 12D.</p><p>Es fundador de Fullness Institute, un centro dedicado al bienestar integral de las personas a través de terapias holísticas, y trabaja como voluntario con jóvenes de distintos colegios en reglas de conducta y gestión de las emociones.</p><ul class="ab-chips"><li>Estudios de música</li><li>Musicoterapeuta</li><li>Diplomado en Mindfulness</li><li>Diplomado en PNL</li><li>Cantautor</li><li>Fundador de Fullness Institute</li></ul></div><figure class="ab-stage"><img src="autor-escena.jpg" alt="Fermín Bósquez cantando en un escenario" width="900" height="900" loading="lazy" decoding="async"><figcaption><span>«</span>La fe, la música y el bienestar emocional, en un mismo camino.<span>»</span></figcaption></figure><p class="ab-cta"><a class="btn primary" href="https://wa.me/50768346940?text=Hola%20Ferm%C3%ADn%2C%20quiero%20informaci%C3%B3n%20sobre%20VibraVoice" target="_blank" rel="noopener">Escríbele a Fermín por WhatsApp</a></p></section>
+  <p class="disclaimer">Uso educativo; no sustituye evaluación médica, auditiva ni fonoaudiológica.</p>
 </section>
 
 <!-- ===================== VOCALMAP ===================== -->
@@ -441,7 +505,7 @@ details.fold>div{padding-bottom:18px;display:flex;flex-direction:column;gap:12px
   <div class="card" id="pf-invite"></div>
 </section>
 </main>
-<footer class="sitefoot"><p>VibraVoice 12D Tutor™ · Fermín Bosquez Mc Kenzie · Panamá</p><p><a href="https://ferminbosquezmc-debug.github.io/vibravoice/" target="_blank" rel="noopener">Sitio web: ferminbosquezmc-debug.github.io/vibravoice</a></p><p><a href="mailto:ferminbosquezmc@gmail.com">ferminbosquezmc@gmail.com</a> · <a href="tel:+50768346940">+507 6834-6940</a></p></footer>
+<footer class="sitefoot"><div class="ft-in"><p class="ft-name">Vibra<b>Voice</b> 12D Tutor™</p><p>Método de Fermín Bósquez Mc Kenzie · Panamá</p><p class="ft-links"><a href="mailto:ferminbosquezmc@gmail.com"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>Correo</a><a href="https://wa.me/50768346940" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 20l1.3-3.9A8 8 0 1 1 8 19z"/><path d="M9 9.5c.3 2 1.8 3.8 4 4.6l1.2-1.2 2 .8-.4 1.8c-3.6.2-7.4-3.4-7.6-7l1.8-.4.8 2z"/></svg>WhatsApp</a><a href="tel:+50768346940"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/></svg>+507 6834-6940</a></p><p class="ft-copy">© <span id="ft-year">2026</span> VibraVoice. Uso educativo y complementario.</p></div></footer>
 
 <nav class="tabs" aria-label="Secciones"><div class="tabs-in">
   <a href="#inicio" data-v="inicio"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg><span>Inicio</span></a>
@@ -455,6 +519,8 @@ details.fold>div{padding-bottom:18px;display:flex;flex-direction:column;gap:12px
 
 <script>
 "use strict";
+if("serviceWorker" in navigator&&/^https?:$/.test(location.protocol))addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));
+try{document.getElementById("ft-year").textContent=new Date().getFullYear()}catch(e){}
 /* ============ DATOS DEL MÉTODO ============ */
 const NAMES=["Do","Do#","Re","Re#","Mi","Fa","Fa#","Sol","Sol#","La","La#","Si"];
 const DIMS=[
@@ -1670,7 +1736,7 @@ function renderAI(M){
     const data={vibrascore:vs.score,vibrascore_nivel:vs.score==null?null:vsBand(vs.score),tipo_voz:m.voice,rango:nm(m.lo)+"-"+nm(m.hi),nota_base:nm(m.base),dimension_base:(pc(m.base)+1)+"D "+DIMS[pc(m.base)].f+" ("+DIMS[pc(m.base)].zone+")",
       desvio_medio_cents:Math.round(m.cents),estabilidad_cents:Math.round(m.mad),mapas_realizados:S.maps.length,dias_completados:done,
       areas:M.map(([n,a,b])=>({area:n,inicial:a,final:b})),ultimo_registro:S.log[logDay]||null};
-    const prompt="Eres el tutor del método VibraVoice 12D Tutor™ (creado por Fermín Bosquez Mc Kenzie): entrenamiento vocal neurovibracional con 12 dimensiones tonales (cada nota = una dimensión: Do centro tonal, Do# precisión, Re movimiento, Re# tensión expresiva, Mi apertura, Fa equilibrio, Fa# transición, Sol expansión, Sol# elevación, La proyección, La# color, Si resolución), secuencia escuchar-sentir-imaginar-respirar-cantar-verificar y programa de 30 días (semana 1 sentir la voz, 2 afinación e intervalos, 3 escalas y arpegios, 4 armonización y canción).\n\nDatos del alumno (JSON):\n"+JSON.stringify(data)+"\n\nEscribe en español, tono cálido y concreto, máximo 220 palabras, sin markdown con símbolos (#, *). El VibraScore (0-100) es el puntaje global ponderado del método (afinación 25%, estabilidad 20%, intervalos 15%, escalas 15%, armonización 10%, seguridad 10%, ritmo 5%); menciónalo y di qué área lo subiría más. Estructura: 1) Lectura del mapa en 2-3 frases (qué dicen el rango, la afinación y la estabilidad; 0-12 cents es buena afinación, más de 25 cents de estabilidad indica voz poco sostenida). 2) Tres ejercicios concretos para esta semana del método, con nota y dimensión. 3) Una frase guía del método. No hagas diagnósticos médicos; si hay mucha tensión o dolor, sugiere consultar a un profesional.";
+    const prompt="Eres el tutor del método VibraVoice 12D Tutor™ (creado por Fermín Bósquez Mc Kenzie): entrenamiento vocal neurovibracional con 12 dimensiones tonales (cada nota = una dimensión: Do centro tonal, Do# precisión, Re movimiento, Re# tensión expresiva, Mi apertura, Fa equilibrio, Fa# transición, Sol expansión, Sol# elevación, La proyección, La# color, Si resolución), secuencia escuchar-sentir-imaginar-respirar-cantar-verificar y programa de 30 días (semana 1 sentir la voz, 2 afinación e intervalos, 3 escalas y arpegios, 4 armonización y canción).\n\nDatos del alumno (JSON):\n"+JSON.stringify(data)+"\n\nEscribe en español, tono cálido y concreto, máximo 220 palabras, sin markdown con símbolos (#, *). El VibraScore (0-100) es el puntaje global ponderado del método (afinación 25%, estabilidad 20%, intervalos 15%, escalas 15%, armonización 10%, seguridad 10%, ritmo 5%); menciónalo y di qué área lo subiría más. Estructura: 1) Lectura del mapa en 2-3 frases (qué dicen el rango, la afinación y la estabilidad; 0-12 cents es buena afinación, más de 25 cents de estabilidad indica voz poco sostenida). 2) Tres ejercicios concretos para esta semana del método, con nota y dimensión. 3) Una frase guía del método. No hagas diagnósticos médicos; si hay mucha tensión o dolor, sugiere consultar a un profesional.";
     try{const r=await s(prompt,{onText:({text})=>{out.textContent=text}});out.textContent=r.text}catch(e){out.textContent=e&&e.code==="rate_limited"?"Demasiadas solicitudes. Intenta en un minuto.":"No se pudo obtener la lectura ("+(e&&e.code||"error")+")."}
     btn.disabled=false;btn.textContent="Pedir otra lectura";
   });
@@ -1692,7 +1758,7 @@ function drawCert(cv,name,lvl,date){
   c.fillText("Nivel alcanzado: "+lvl+(vsc!=null?"   ·   VibraScore™ "+vsc+"/100":""),W/2,500);
   c.fillStyle="#0E6B66";c.font="italic 26px Fraunces, Georgia, serif";c.fillText("Cada nota es una dimensión. Cada voz tiene un mapa.",W/2,580);
   c.fillStyle="#111";c.font="20px Figtree, sans-serif";c.textAlign="left";c.fillText("Fecha: "+date,110,700);
-  c.textAlign="right";c.fillText("Fermín Bosquez Mc Kenzie",W-110,700);c.fillStyle="#777";c.font="16px Figtree, sans-serif";c.fillText("Tutor certificado · Panamá",W-110,726);
+  c.textAlign="right";c.fillText("Fermín Bósquez Mc Kenzie",W-110,700);c.fillStyle="#777";c.font="16px Figtree, sans-serif";c.fillText("Tutor certificado · Panamá",W-110,726);
   c.strokeStyle="#111";c.lineWidth=1.5;c.beginPath();c.moveTo(W-400,672);c.lineTo(W-110,672);c.stroke();
 }
 function renderCert(){
@@ -1718,7 +1784,7 @@ function renderData(){
   const conf=h("div",{class:"row",hidden:true},h("span",{class:"small"},"¿Borrar todo tu progreso?"),h("button",{class:"btn sm",style:"color:var(--bad)",onclick:async()=>{clearTimeout(CLOUD.pushT);CLOUD.ready=false;try{if(CLOUD.ref)await CLOUD.ref.delete()}catch(e){}try{localStorage.removeItem(KEY)}catch(e){}location.reload()}},"Sí, borrar"),h("button",{class:"btn sm ghost",onclick:()=>conf.hidden=true},"Cancelar"));
   el.append(backupBox());
   el.append(h("div",{class:"row"},h("button",{class:"btn sm ghost",onclick:()=>conf.hidden=false},"Reiniciar programa")),conf,
-    h("p",{class:"disclaimer"},"VibraVoice 12D Tutor™ · Fermín Bosquez Mc Kenzie · +507 6834-6940 · ferminbosquezmc@gmail.com · ferminbosquezmc-debug.github.io/vibravoice. Uso educativo y complementario; no sustituye evaluación médica, auditiva ni fonoaudiológica."));
+    h("p",{class:"disclaimer"},"Uso educativo y complementario; no sustituye evaluación médica, auditiva ni fonoaudiológica."));
 }
 
 
@@ -1774,7 +1840,7 @@ async function studentPDF(st,name){
   const maps=st.maps||[],m=maps[maps.length-1],vs=vibraScore(st),M2=metrics(st),log=st.log||{},days=st.days||{};
   let y=0;
   const head=()=>{doc.setFillColor(...OR);doc.rect(0,0,W,6,"F");};
-  const foot=()=>{doc.setFontSize(7.5);doc.setTextColor(...GR);doc.text("VibraVoice 12D Tutor™ · Fermín Bosquez Mc Kenzie · Panamá · +507 6834-6940 · ferminbosquezmc@gmail.com · ferminbosquezmc-debug.github.io/vibravoice",W/2,272,{align:"center"});
+  const foot=()=>{doc.setFontSize(7.5);doc.setTextColor(...GR);doc.text("VibraVoice 12D Tutor™ · Fermín Bósquez Mc Kenzie · Panamá · +507 6834-6940 · ferminbosquezmc@gmail.com · ferminbosquezmc-debug.github.io/vibravoice",W/2,272,{align:"center"});
     doc.text("Uso educativo y complementario; no sustituye evaluación médica, auditiva ni fonoaudiológica.",W/2,276,{align:"center"})};
   const need=hgt=>{if(y+hgt>264){foot();doc.addPage();head();y=16}};
   head();

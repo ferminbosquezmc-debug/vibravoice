@@ -88,6 +88,28 @@ header.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:9;background
 .vs-row{display:grid;grid-template-columns:minmax(0,1fr) 44px;gap:4px 10px;align-items:center;font-size:.88rem}
 .vs-row .bar{grid-column:1/-1}
 .vs-row.off{opacity:.45}
+.hist-sec{display:flex;flex-direction:column;gap:6px}
+.hist-sec h3{margin:0;font-size:1rem}
+.hchart{width:100%;height:auto;display:block}
+.hchart text{fill:var(--muted);font-size:10px;font-family:var(--mono)}
+.hchart .gd{stroke:var(--line);stroke-dasharray:3 4}
+.hchart .rg{stroke:var(--accent);stroke-width:8;stroke-linecap:round;opacity:.85}
+.hchart .bs{fill:var(--fg)}
+.hchart .l1{fill:none;stroke:var(--accent);stroke-width:2}
+.hchart .l2{fill:none;stroke:var(--teal);stroke-width:2;stroke-dasharray:5 3}
+.hchart .p1{fill:var(--accent)}.hchart .p2{fill:var(--teal)}
+.hleg{display:flex;gap:14px;font-size:.8rem;color:var(--muted)}
+.hleg i{display:inline-block;width:14px;height:3px;border-radius:2px;vertical-align:middle;margin-right:6px}
+.cgrid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px;max-width:250px}
+.cgrid span{aspect-ratio:1;border-radius:6px;background:var(--surface2);border:1px solid var(--line)}
+.cgrid span.l1{background:color-mix(in srgb,var(--accent) 35%,var(--surface2))}
+.cgrid span.l2{background:color-mix(in srgb,var(--accent) 65%,var(--surface2))}
+.cgrid span.l3{background:var(--accent);border-color:var(--accent)}
+.cgrid span.td{outline:2px solid var(--fg);outline-offset:1px}
+.hstats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.hstats div{background:var(--surface2);border-radius:12px;padding:8px 6px;text-align:center}
+.hstats b{display:block;font-family:var(--display);font-size:1.4rem;line-height:1.1}
+.hstats small{color:var(--muted);font-size:.72rem;line-height:1.2;display:block}
 .spark{width:100%;height:70px;display:block}
 .spark .ln{fill:none;stroke:var(--accent);stroke-width:2}
 .spark .ar{fill:var(--accent);opacity:.12}
@@ -485,6 +507,7 @@ details.fold>div{padding-bottom:18px;display:flex;flex-direction:column;gap:12px
     <h1>Mi progreso</h1>
   </div>
   <div class="card" id="pg-vs"></div>
+  <div class="card" id="pg-hist"></div>
   <div class="card" id="pg-table"></div>
   <div class="card" id="pg-ai"></div>
   <div class="card" id="pg-cert"></div>
@@ -1707,8 +1730,61 @@ function renderVS(){
     "Calculado con "+v.cover+"% de las áreas. Las áreas en gris aún no tienen datos: verifica ejercicios de esas secciones para completarlo."));
   const sp=spark(S.vs);if(sp)el.append(h("b",{class:"small"},"Evolución"),sp);
 }
+/* ============ HISTORIAL: rango, afinación y constancia ============ */
+function dayKey(t){const d=new Date(t);return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")}
+function shortDate(m){if(m.ts){const d=new Date(m.ts);return d.getDate()+"/"+(d.getMonth()+1)}return String(m.date||"").slice(5).split("-").reverse().join("/")}
+function svgMk(t,a,txt){const e=document.createElementNS("http://www.w3.org/2000/svg",t);for(const k in a)e.setAttribute(k,a[k]);if(txt!=null)e.textContent=txt;return e}
+function rangeChart(maps){
+  const pts=maps.slice(-8),W=320,L=46,R=42,rowH=24,top=8,H=top+pts.length*rowH+20;
+  const lo=Math.min(...pts.map(m=>m.lo))-2,hi=Math.max(...pts.map(m=>m.hi))+2,x=v=>L+(v-lo)*(W-L-R)/(hi-lo);
+  const svg=svgMk("svg",{class:"hchart",viewBox:"0 0 "+W+" "+H,role:"img","aria-label":"Rango vocal en cada mapa"});
+  for(let v=Math.ceil(lo/12)*12;v<=hi;v+=12){svg.append(svgMk("line",{class:"gd",x1:x(v),x2:x(v),y1:top-4,y2:H-18}),svgMk("text",{x:x(v),y:H-4,"text-anchor":"middle"},nm(v)))}
+  pts.forEach((m,i)=>{const y=top+i*rowH+rowH/2;
+    svg.append(svgMk("text",{x:0,y:y+3},shortDate(m)),svgMk("line",{class:"rg",x1:x(m.lo),x2:x(m.hi),y1:y,y2:y}),svgMk("circle",{class:"bs",cx:x(m.base),cy:y,r:3.5}),
+      svgMk("text",{x:x(m.hi)+8,y:y+3},(m.hi-m.lo)+" st"))});
+  return svg;
+}
+function tuneChart(maps){
+  const pts=maps.slice(-12).map(m=>Object.assign({m},mapScores(m))),W=320,H=130,L=28,R=10,T=8,B=20;
+  const x=i=>L+i*(W-L-R)/Math.max(1,pts.length-1),y=v=>T+(100-v)*(H-T-B)/100;
+  const svg=svgMk("svg",{class:"hchart",viewBox:"0 0 "+W+" "+H,role:"img","aria-label":"Afinación y estabilidad en cada mapa"});
+  [0,50,100].forEach(v=>svg.append(svgMk("line",{class:"gd",x1:L,x2:W-R,y1:y(v),y2:y(v)}),svgMk("text",{x:L-4,y:y(v)+3,"text-anchor":"end"},v)));
+  [["afin","l1","p1"],["estab","l2","p2"]].forEach(([k,lc,pc])=>{
+    svg.append(svgMk("path",{class:lc,d:pts.map((p,i)=>(i?"L":"M")+x(i).toFixed(1)+" "+y(p[k]).toFixed(1)).join(" ")}));
+    pts.forEach((p,i)=>svg.append(svgMk("circle",{class:pc,cx:x(i),cy:y(p[k]),r:3})))});
+  svg.append(svgMk("text",{x:L,y:H-4},shortDate(pts[0].m)),svgMk("text",{x:W-R,y:H-4,"text-anchor":"end"},shortDate(pts[pts.length-1].m)));
+  return svg;
+}
+function activityByDay(){
+  const c={};const add=t=>{if(t){const k=dayKey(t);c[k]=(c[k]||0)+1}};
+  Object.values(S.scores||{}).forEach(a=>(a||[]).forEach(x=>add(x.ts)));(S.maps||[]).forEach(m=>add(m.ts));
+  return c;
+}
+function renderHist(){
+  const el=$("#pg-hist");if(!el)return;el.innerHTML="";
+  el.append(h("div",{class:"eyebrow"},"Historial"),h("h2",{},"Tu evolución"));
+  const maps=S.maps||[];
+  const r=h("div",{class:"hist-sec"},h("h3",{},"Rango vocal"));
+  if(maps.length){r.append(rangeChart(maps),h("p",{class:"small muted"},"Cada barra es un VocalMap: de tu nota más grave a la más aguda. El punto es tu nota base."))}
+  else r.append(h("p",{class:"small muted"},"Haz tu primer VocalMap para ver tu rango aquí."));
+  el.append(r);
+  const t=h("div",{class:"hist-sec"},h("h3",{},"Afinación y estabilidad"));
+  if(maps.length>1)t.append(h("div",{class:"hleg"},h("span",{},h("i",{style:"background:var(--accent)"}),"Afinación"),h("span",{},h("i",{style:"background:var(--teal)"}),"Estabilidad")),tuneChart(maps));
+  else t.append(h("p",{class:"small muted"},maps.length?"Repite el VocalMap otro día para ver la línea de mejora.":"Aparece cuando tengas al menos dos mapas vocales."));
+  el.append(t);
+  const act=activityByDay(),now=new Date();now.setHours(12,0,0,0);
+  const days=[];for(let i=27;i>=0;i--){const d=new Date(now);d.setDate(d.getDate()-i);days.push(dayKey(d))}
+  const active=days.filter(k=>act[k]).length;
+  let streak=0;for(let i=days.length-1;i>=0;i--){if(act[days[i]])streak++;else if(i===days.length-1)continue;else break}
+  const total=days.reduce((a,k)=>a+(act[k]||0),0);
+  const grid=h("div",{class:"cgrid",role:"img","aria-label":"Días con práctica en las últimas 4 semanas: "+active});
+  days.forEach((k,i)=>{const n=act[k]||0;grid.append(h("span",{class:(n>=6?"l3":n>=3?"l2":n?"l1":"")+(i===days.length-1?" td":""),title:k.split("-").reverse().join("/")+" · "+n+" ejercicios"}))});
+  el.append(h("div",{class:"hist-sec"},h("h3",{},"Constancia · últimas 4 semanas"),
+    h("div",{class:"hstats"},h("div",{},h("b",{},String(active)),h("small",{},"días practicados")),h("div",{},h("b",{},String(streak)),h("small",{},"días seguidos")),h("div",{},h("b",{},String(total)),h("small",{},"ejercicios verificados"))),
+    grid,h("p",{class:"small muted"},"Cada cuadro es un día; más color, más ejercicios verificados. El de borde es hoy.")));
+}
 function renderProgreso(){
-  renderVS();
+  renderVS();renderHist();
   const t=$("#pg-table");t.innerHTML="";const M=metrics();const m0=S.maps[0],m1=lastMap();
   t.append(h("h2",{},"Inicial y final"),h("p",{class:"muted small"},m1?"Mapas: "+S.maps.length+" · primero "+m0.date+" · último "+m1.date+". Afinación y estabilidad vienen del VocalMap; el resto, de tus verificaciones y registros.":"Haz el VocalMap y verifica ejercicios para llenar esta tabla."));
   const tb=h("table",{class:"tbl"},h("thead",{},h("tr",{},h("th",{},"Área"),h("th",{class:"num"},"Inicial"),h("th",{class:"num"},"Final"),h("th",{class:"num"},"Progreso"))),

@@ -1,5 +1,5 @@
 /* VibraVoice: funciona sin internet después de la primera visita */
-const CACHE="vibravoice-v3";
+const CACHE="vibravoice-v4";
 const SHELL=["./","index.html","manifest.webmanifest","icon-192.png","icon-512.png","autor.jpg","autor-escena.jpg"];
 
 self.addEventListener("install",e=>{

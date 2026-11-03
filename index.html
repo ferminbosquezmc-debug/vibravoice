@@ -110,6 +110,29 @@ header.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:9;background
 .hstats div{background:var(--surface2);border-radius:12px;padding:8px 6px;text-align:center}
 .hstats b{display:block;font-family:var(--display);font-size:1.4rem;line-height:1.1}
 .hstats small{color:var(--muted);font-size:.72rem;line-height:1.2;display:block}
+.coach-fab{position:fixed;right:max(16px,env(safe-area-inset-right,0px));bottom:calc(78px + env(safe-area-inset-bottom,0px));z-index:12;display:flex;align-items:center;gap:8px;background:var(--accent);color:var(--accent-ink);border:none;border-radius:999px;padding:12px 16px;font:600 .95rem var(--body);box-shadow:0 6px 18px rgba(0,0,0,.22);cursor:pointer}
+.coach-fab svg{width:20px;height:20px}
+.coach-fab[hidden],.coach-panel[hidden]{display:none!important}
+.coach-panel{position:fixed;left:0;right:0;bottom:0;z-index:30;margin:0 auto;max-width:560px;height:min(78vh,640px);background:var(--surface);border:1px solid var(--line);border-radius:20px 20px 0 0;box-shadow:0 -10px 30px rgba(0,0,0,.25);display:flex;flex-direction:column;padding-bottom:env(safe-area-inset-bottom,0px)}
+.coach-hd{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 16px;border-bottom:1px solid var(--line)}
+.coach-hd b{font-family:var(--display);font-size:1.15rem}
+.coach-hd small{display:block;color:var(--muted);font-size:.78rem}
+.coach-hd .row{flex-wrap:nowrap;gap:6px}
+.coach-log{flex:1;overflow-y:auto;padding:14px 16px;display:flex;flex-direction:column;gap:10px;overscroll-behavior:contain}
+.cmsg{max-width:86%;padding:10px 13px;border-radius:16px;white-space:pre-wrap;line-height:1.5;font-size:.95rem;overflow-wrap:anywhere}
+.cmsg.u{align-self:flex-end;background:var(--accent);color:var(--accent-ink);border-bottom-right-radius:6px}
+.cmsg.m{align-self:flex-start;background:var(--surface2);border-bottom-left-radius:6px}
+.cmsg.wait{color:var(--muted);font-style:italic}
+.coach-sug{display:flex;gap:8px;overflow-x:auto;padding:0 16px 8px}
+.coach-sug button{flex:none;border:1px solid var(--line);background:var(--bg);color:var(--fg);border-radius:999px;padding:7px 12px;font:500 .85rem var(--body);cursor:pointer}
+.coach-in{display:flex;gap:8px;padding:10px 12px;border-top:1px solid var(--line)}
+.coach-in textarea{flex:1;min-width:0;resize:none;height:44px;max-height:120px;border:1px solid var(--line);border-radius:14px;padding:11px 12px;font:16px var(--body);background:var(--bg);color:var(--fg)}
+.rec-box{display:flex;flex-direction:column;gap:10px}
+.rec-timer{font-family:var(--mono);font-size:1.6rem;font-weight:600}
+.rec-dot{display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--bad);margin-right:8px;animation:recb 1s infinite}
+@keyframes recb{50%{opacity:.25}}
+.mchips{display:flex;flex-wrap:wrap;gap:6px}
+.mchips span{background:var(--surface2);border-radius:999px;padding:5px 10px;font-size:.8rem;font-family:var(--mono)}
 .spark{width:100%;height:70px;display:block}
 .spark .ln{fill:none;stroke:var(--accent);stroke-width:2}
 .spark .ar{fill:var(--accent);opacity:.12}
@@ -508,6 +531,7 @@ details.fold>div{padding-bottom:18px;display:flex;flex-direction:column;gap:12px
   </div>
   <div class="card" id="pg-vs"></div>
   <div class="card" id="pg-hist"></div>
+  <div class="card" id="pg-rec" hidden></div>
   <div class="card" id="pg-table"></div>
   <div class="card" id="pg-ai"></div>
   <div class="card" id="pg-cert"></div>
@@ -1783,8 +1807,122 @@ function renderHist(){
     h("div",{class:"hstats"},h("div",{},h("b",{},String(active)),h("small",{},"días practicados")),h("div",{},h("b",{},String(streak)),h("small",{},"días seguidos")),h("div",{},h("b",{},String(total)),h("small",{},"ejercicios verificados"))),
     grid,h("p",{class:"small muted"},"Cada cuadro es un día; más color, más ejercicios verificados. El de borde es hoy.")));
 }
+/* ============ SERVIDOR DE IA (Cloudflare Worker + Gemini) ============ */
+const AI_URL_DEFAULT="";
+const AI_URL=(()=>{let o="";try{o=localStorage.getItem("vv12d-ai-url")||""}catch(e){}return (o||AI_URL_DEFAULT).trim().replace(/\/+$/,"")})();
+async function aiPost(path,body){
+  let r;try{r=await fetch(AI_URL+path,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)})}
+  catch(e){throw new Error("No hay conexión con el tutor. Revisa tu internet e intenta de nuevo.")}
+  const j=await r.json().catch(()=>({}));if(!r.ok||!j.text)throw new Error(j.error||"El tutor no pudo responder ("+r.status+").");return j.text;
+}
+function aiPerfil(){
+  const m=lastMap(),v=vibraScore(),done=Object.keys(S.days).filter(k=>S.days[k]).map(Number).sort((a,b)=>a-b);
+  return{nombre:S.name||null,tipo_voz:m?m.voice:null,rango:m?nm(m.lo)+"-"+nm(m.hi):null,nota_base:m?nm(m.base)+" ("+(pc(m.base)+1)+"D "+DIMS[pc(m.base)].f+")":null,
+    afinacion_mapa_cents:m?Math.round(m.cents):null,estabilidad_mapa_cents:m?Math.round(m.mad):null,vibrascore:v.score,dias_completados:done,
+    siguiente_dia:(DAYS.find(d=>!S.days[d[0]])||[null,null])[0]};
+}
+function b64(bytes){let s="";for(let i=0;i<bytes.length;i+=8192)s+=String.fromCharCode.apply(null,bytes.subarray(i,i+8192));return btoa(s)}
+async function toWav16k(ab,maxSec){
+  const sr=16000,len=Math.min(ab.duration,maxSec),n=Math.ceil(len*sr);
+  const off=new OfflineAudioContext(1,n,sr),src=off.createBufferSource();src.buffer=ab;src.connect(off.destination);src.start(0);
+  const out=(await off.startRendering()).getChannelData(0);
+  let pk=0;for(let i=0;i<out.length;i++)pk=Math.max(pk,Math.abs(out[i]));const g=pk>0?Math.min(4,.92/pk):1;
+  const buf=new ArrayBuffer(44+out.length*2),v=new DataView(buf),w=(o,t)=>{for(let i=0;i<t.length;i++)v.setUint8(o+i,t.charCodeAt(i))};
+  w(0,"RIFF");v.setUint32(4,36+out.length*2,true);w(8,"WAVE");w(12,"fmt ");v.setUint32(16,16,true);v.setUint16(20,1,true);v.setUint16(22,1,true);
+  v.setUint32(24,sr,true);v.setUint32(28,sr*2,true);v.setUint16(32,2,true);v.setUint16(34,16,true);w(36,"data");v.setUint32(40,out.length*2,true);
+  for(let i=0;i<out.length;i++)v.setInt16(44+i*2,clamp(out[i]*g,-1,1)*32767,true);
+  return new Uint8Array(buf);
+}
+
+/* ---- Análisis de grabación con IA ---- */
+const REC_MAX=45;let recState=null;
+function recStop(){if(recState){try{recState.mr.state!=="inactive"&&recState.mr.stop()}catch(e){}}}
+window.addEventListener("hashchange",()=>{if(recState){recState.cancel=true;recStop()}});
+function renderRecAI(){
+  const el=$("#pg-rec");if(!el)return;if(!AI_URL){el.hidden=true;return}el.hidden=false;if(el.childNodes.length&&!recState)return;
+  if(recState)return;el.innerHTML="";
+  const ctx=h("input",{type:"text",id:"rec-ctx",placeholder:"¿Qué cantas? Ej.: estrofa de «Cuán grande es Él», en Sol",maxlength:200});
+  const st=h("div",{class:"small muted",role:"status"},"Graba de 15 a 45 segundos, sin música de fondo y cerca del teléfono.");
+  const timer=h("div",{class:"rec-timer",hidden:true});const out=h("div",{class:"ai-out"});const chips=h("div",{class:"mchips"});
+  const recBtn=h("button",{class:"btn primary",type:"button"},"Grabar interpretación");
+  const file=h("input",{type:"file",accept:"audio/*,.m4a,.mp3,.wav,.ogg,.webm,.aac,.flac","aria-label":"Subir una grabación"});
+  const upBtn=h("span",{class:"btn file-btn"},"Subir audio",file);
+  const busy=b=>{recBtn.disabled=b;file.disabled=b;upBtn.classList.toggle("off",b)};
+  async function process(blob){
+    busy(true);out.textContent="";chips.innerHTML="";
+    try{
+      st.textContent="Midiendo afinación y estabilidad…";
+      const ab=await decode(blob);if(ab.duration<3)throw new Error("La grabación es muy corta: canta al menos 10 segundos.");
+      const an=await analyze(blob),sm=summary(an);
+      const medidas=sm?{nota_central:nm(sm.note),desvio_cents:Math.round(sm.cents),estabilidad_cents:Math.round(sm.mad),rango_cantado:nm(Math.round(sm.p10))+" a "+nm(Math.round(sm.p90)),segundos_con_voz:+sm.voicedSec.toFixed(1),duracion_s:+Math.min(ab.duration,REC_MAX).toFixed(1)}:{voz_detectada:false,duracion_s:+ab.duration.toFixed(1)};
+      if(sm)chips.append(h("span",{},"Centro "+medidas.nota_central),h("span",{},"Desvío "+(medidas.desvio_cents>0?"+":"")+medidas.desvio_cents+" ¢"),h("span",{},"Estabilidad ±"+medidas.estabilidad_cents+" ¢"),h("span",{},"Rango "+medidas.rango_cantado));
+      st.textContent="El tutor está escuchando tu grabación…";
+      const wav=await toWav16k(ab,REC_MAX);
+      out.textContent=await aiPost("/analizar",{audio:b64(wav),mime:"audio/wav",contexto:ctx.value.trim(),medidas,perfil:aiPerfil()});
+      st.textContent=ab.duration>REC_MAX?"Se analizaron los primeros "+REC_MAX+" segundos.":"";
+      if(sm&&Math.abs(sm.cents)<50){S.scores.nota.push({ts:Date.now(),pct:Math.round(clamp(100-Math.abs(sm.cents)*1.1-Math.max(0,sm.mad-12)*.8,0,100))});save();renderHist()}
+    }catch(e){st.textContent=e&&e.message&&!/decode|Unable/i.test(e.message)?e.message:"No pude leer ese audio. Prueba con m4a, mp3 o wav."}
+    busy(false);
+  }
+  recBtn.addEventListener("click",async()=>{
+    if(recState){recStop();return}
+    if(!(navigator.mediaDevices&&window.MediaRecorder)){st.textContent="Este navegador no permite grabar aquí. Usa «Subir audio».";return}
+    let stream;try{stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}})}
+    catch(e){st.textContent=e&&e.name==="NotAllowedError"?"Permiso de micrófono denegado. Permítelo en el candado junto a la dirección y recarga.":"No pude abrir el micrófono.";return}
+    const mr=new MediaRecorder(stream),parts=[],t0=Date.now();recState={mr,cancel:false};
+    mr.ondataavailable=e=>{if(e.data&&e.data.size)parts.push(e.data)};
+    const tick=setInterval(()=>{const s=(Date.now()-t0)/1000;timer.innerHTML="";timer.append(h("span",{class:"rec-dot"}),Math.floor(s)+" s / "+REC_MAX+" s");if(s>=REC_MAX)recStop()},250);
+    mr.onstop=()=>{clearInterval(tick);stream.getTracks().forEach(t=>t.stop());timer.hidden=true;const cancel=recState.cancel;recState=null;
+      recBtn.textContent="Grabar interpretación";recBtn.classList.add("primary");file.disabled=false;
+      if(!cancel&&parts.length)process(new Blob(parts,{type:mr.mimeType||"audio/webm"}))};
+    mr.start(500);timer.hidden=false;timer.textContent="0 s / "+REC_MAX+" s";st.textContent="Grabando: canta ahora. Toca «Detener» al terminar.";
+    recBtn.textContent="Detener y analizar";file.disabled=true;
+  });
+  file.addEventListener("change",()=>{const f=file.files&&file.files[0];file.value="";if(!f)return;if(f.size>25e6){st.textContent="El archivo pesa más de 25 MB.";return}process(f)});
+  el.append(h("div",{class:"eyebrow"},"Análisis con IA"),h("h2",{},"Escucha tu interpretación"),
+    h("p",{class:"muted small"},"Graba o sube una canción o ejercicio. La app mide tu afinación y el tutor escucha el audio para darte comentarios y ejercicios."),
+    h("div",{class:"rec-box"},h("label",{class:"field"},"Contexto (opcional)",ctx),h("div",{class:"row"},recBtn,upBtn),timer,st,chips,out),
+    h("p",{class:"disclaimer"},"El audio se envía a la IA de Google (Gemini) solo para este análisis. No reemplaza a un profesor ni a un médico."));
+}
+
+/* ---- Coach de práctica por chat ---- */
+const COACH_KEY="vv12d-coach";
+let coachMsgs=[];try{coachMsgs=JSON.parse(localStorage.getItem(COACH_KEY)||"[]")}catch(e){coachMsgs=[]}
+function initCoach(){
+  if(!AI_URL)return;
+  const fab=h("button",{class:"coach-fab",type:"button","aria-haspopup":"dialog","aria-label":"Abrir el coach de práctica"});
+  fab.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20.5l1.4-4.9A8 8 0 1 1 21 12z"/></svg><span>Coach</span>';
+  const log=h("div",{class:"coach-log","aria-live":"polite"});
+  const ta=h("textarea",{placeholder:"Pregúntale a tu coach…","aria-label":"Mensaje para el coach",maxlength:1200,rows:1});
+  const send=h("button",{class:"btn primary",type:"button"},"Enviar");
+  const close=h("button",{class:"btn ghost sm",type:"button","aria-label":"Cerrar el coach"},"Cerrar");
+  const clear=h("button",{class:"btn ghost sm",type:"button"},"Borrar");
+  const sug=h("div",{class:"coach-sug"},["¿Qué practico hoy?","Se me cansa la voz, ¿qué hago?","¿Cómo sostengo mejor una nota?","Explícame la dimensión de mi nota base"].map(t=>h("button",{type:"button",onclick:()=>ask(t)},t)));
+  const panel=h("div",{class:"coach-panel",role:"dialog","aria-modal":"true","aria-label":"Coach de práctica",hidden:true},
+    h("div",{class:"coach-hd"},h("div",{},h("b",{},"Coach VibraVoice"),h("small",{},"Tu tutor de práctica · responde con IA")),h("div",{class:"row"},clear,close)),log,sug,h("div",{class:"coach-in"},ta,send));
+  const draw=()=>{log.innerHTML="";
+    if(!coachMsgs.length)log.append(h("div",{class:"cmsg m"},"¡Hola"+(S.name?", "+S.name.split(" ")[0]:"")+"! Soy tu coach del método VibraVoice 12D. Pregúntame qué practicar, cómo corregir algo o qué significa una dimensión."));
+    coachMsgs.forEach(m=>log.append(h("div",{class:"cmsg "+(m.role==="user"?"u":"m")},m.text)));sug.hidden=coachMsgs.length>0;log.scrollTop=log.scrollHeight};
+  const persist=()=>{coachMsgs=coachMsgs.slice(-30);try{localStorage.setItem(COACH_KEY,JSON.stringify(coachMsgs))}catch(e){}};
+  let busy=false;
+  async function ask(t){
+    t=(t||"").trim();if(!t||busy)return;busy=true;send.disabled=true;ta.value="";
+    coachMsgs.push({role:"user",text:t});persist();draw();const w=h("div",{class:"cmsg m wait"},"Escribiendo…");log.append(w);log.scrollTop=log.scrollHeight;
+    try{const r=await aiPost("/coach",{messages:coachMsgs.slice(-14),perfil:aiPerfil()});coachMsgs.push({role:"model",text:r});persist();draw()}
+    catch(e){w.classList.remove("wait");w.textContent=e.message}
+    busy=false;send.disabled=false;
+  }
+  const open=()=>{panel.hidden=false;fab.hidden=true;draw();setTimeout(()=>ta.focus(),50)};
+  const shut=()=>{panel.hidden=true;fab.hidden=false;fab.focus()};
+  fab.addEventListener("click",open);close.addEventListener("click",shut);
+  clear.addEventListener("click",()=>{coachMsgs=[];persist();draw()});
+  send.addEventListener("click",()=>ask(ta.value));
+  ta.addEventListener("keydown",e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();ask(ta.value)}});
+  panel.addEventListener("keydown",e=>{if(e.key==="Escape")shut()});
+  document.body.append(fab,panel);
+}
 function renderProgreso(){
-  renderVS();renderHist();
+  renderVS();renderHist();renderRecAI();
   const t=$("#pg-table");t.innerHTML="";const M=metrics();const m0=S.maps[0],m1=lastMap();
   t.append(h("h2",{},"Inicial y final"),h("p",{class:"muted small"},m1?"Mapas: "+S.maps.length+" · primero "+m0.date+" · último "+m1.date+". Afinación y estabilidad vienen del VocalMap; el resto, de tus verificaciones y registros.":"Haz el VocalMap y verifica ejercicios para llenar esta tabla."));
   const tb=h("table",{class:"tbl"},h("thead",{},h("tr",{},h("th",{},"Área"),h("th",{class:"num"},"Inicial"),h("th",{class:"num"},"Final"),h("th",{class:"num"},"Progreso"))),
@@ -1799,21 +1937,21 @@ async function getCap(n){if(window.claude&&window.claude.use){try{return await w
   if(n==="downloads")return{save:async({filename,data})=>{const blob=data instanceof Blob?data:new Blob([data]);const u=URL.createObjectURL(blob);const a=document.createElement("a");a.href=u;a.download=filename;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),5000);return{status:"saved"}}};
   return null}
 function renderAI(M){
-  const el=$("#pg-ai");el.innerHTML="";if(!(window.claude&&window.claude.use)){el.hidden=true;return}const m=lastMap();
+  const el=$("#pg-ai");el.innerHTML="";const viaClaude=!!(window.claude&&window.claude.use);if(!viaClaude&&!AI_URL){el.hidden=true;return}el.hidden=false;const m=lastMap();
   const out=h("div",{class:"ai-out"});
   el.append(h("div",{class:"eyebrow"},"Lectura del tutor"),h("h3",{},"Interpretación de tu mapa vocal"),
-    h("p",{class:"muted small"},"Claude lee tus datos (rango, afinación, estabilidad, puntajes y registros) y propone la ruta de la semana. No escucha tu audio."));
+    h("p",{class:"muted small"},"El tutor lee tus datos (rango, afinación, estabilidad, puntajes y registros) y propone la ruta de la semana. No escucha tu audio."));
   const btn=h("button",{class:"btn primary",disabled:!m},m?"Pedir lectura":"Primero crea tu mapa vocal");
   btn.addEventListener("click",async()=>{
     btn.disabled=true;out.textContent="Pensando…";
-    const s=await getCap("sample");if(!s){out.textContent="La lectura del tutor no está disponible en esta vista.";btn.disabled=false;return}
+    const s=viaClaude?await getCap("sample"):null;if(viaClaude&&!s){out.textContent="La lectura del tutor no está disponible en esta vista.";btn.disabled=false;return}
     const done=Object.keys(S.days).filter(k=>S.days[k]).map(Number).sort((a,b)=>a-b);
     const vs=vibraScore();
     const data={vibrascore:vs.score,vibrascore_nivel:vs.score==null?null:vsBand(vs.score),tipo_voz:m.voice,rango:nm(m.lo)+"-"+nm(m.hi),nota_base:nm(m.base),dimension_base:(pc(m.base)+1)+"D "+DIMS[pc(m.base)].f+" ("+DIMS[pc(m.base)].zone+")",
       desvio_medio_cents:Math.round(m.cents),estabilidad_cents:Math.round(m.mad),mapas_realizados:S.maps.length,dias_completados:done,
       areas:M.map(([n,a,b])=>({area:n,inicial:a,final:b})),ultimo_registro:S.log[logDay]||null};
     const prompt="Eres el tutor del método VibraVoice 12D Tutor™ (creado por Fermín Bósquez Mc Kenzie): entrenamiento vocal neurovibracional con 12 dimensiones tonales (cada nota = una dimensión: Do centro tonal, Do# precisión, Re movimiento, Re# tensión expresiva, Mi apertura, Fa equilibrio, Fa# transición, Sol expansión, Sol# elevación, La proyección, La# color, Si resolución), secuencia escuchar-sentir-imaginar-respirar-cantar-verificar y programa de 30 días (semana 1 sentir la voz, 2 afinación e intervalos, 3 escalas y arpegios, 4 armonización y canción).\n\nDatos del alumno (JSON):\n"+JSON.stringify(data)+"\n\nEscribe en español, tono cálido y concreto, máximo 220 palabras, sin markdown con símbolos (#, *). El VibraScore (0-100) es el puntaje global ponderado del método (afinación 25%, estabilidad 20%, intervalos 15%, escalas 15%, armonización 10%, seguridad 10%, ritmo 5%); menciónalo y di qué área lo subiría más. Estructura: 1) Lectura del mapa en 2-3 frases (qué dicen el rango, la afinación y la estabilidad; 0-12 cents es buena afinación, más de 25 cents de estabilidad indica voz poco sostenida). 2) Tres ejercicios concretos para esta semana del método, con nota y dimensión. 3) Una frase guía del método. No hagas diagnósticos médicos; si hay mucha tensión o dolor, sugiere consultar a un profesional.";
-    try{const r=await s(prompt,{onText:({text})=>{out.textContent=text}});out.textContent=r.text}catch(e){out.textContent=e&&e.code==="rate_limited"?"Demasiadas solicitudes. Intenta en un minuto.":"No se pudo obtener la lectura ("+(e&&e.code||"error")+")."}
+    try{if(!viaClaude){out.textContent=await aiPost("/lectura",{datos:data});btn.disabled=false;btn.textContent="Pedir otra lectura";return}const r=await s(prompt,{onText:({text})=>{out.textContent=text}});out.textContent=r.text}catch(e){if(!viaClaude){out.textContent=e.message;btn.disabled=false;return}out.textContent=e&&e.code==="rate_limited"?"Demasiadas solicitudes. Intenta en un minuto.":"No se pudo obtener la lectura ("+(e&&e.code||"error")+")."}
     btn.disabled=false;btn.textContent="Pedir otra lectura";
   });
   el.append(btn,out);
@@ -2138,6 +2276,7 @@ spBtn.addEventListener("click",()=>{S.spatial=!S.spatial;save();spSync();toast(S
 spSync();
 route();
 initCloud();
+initCoach();
 </script>
 
 </body>

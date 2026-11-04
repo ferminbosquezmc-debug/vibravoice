@@ -61,7 +61,7 @@ async function gemini(env, system, contents, maxTokens) {
       body: JSON.stringify({ systemInstruction: { parts: [{ text: system }] }, contents, generationConfig: { temperature: 0.6, maxOutputTokens: maxTokens } }),
     });
     const data = await r.json().catch(() => ({}));
-    if (r.status === 404 || (r.status === 400 && /model/i.test(data?.error?.message || ""))) { ultimo = r.status; continue; } // modelo no disponible: probar el siguiente
+    if (r.status === 404 || r.status === 500 || r.status === 503 || (r.status === 400 && /model/i.test(data?.error?.message || ""))) { ultimo = r.status; continue; } // modelo no disponible o saturado: probar el siguiente
     if (!r.ok) {
       const e = new Error(r.status === 429 ? "Se alcanzó el límite gratuito de la IA por ahora. Intenta en unos minutos." :
         (r.status === 400 || r.status === 401 || r.status === 403) ? "La clave de Gemini no es válida o no tiene permiso. Revísala en Cloudflare." : "La IA no pudo responder (" + r.status + ").");
@@ -71,7 +71,7 @@ async function gemini(env, system, contents, maxTokens) {
     if (!text) { const e = new Error("La IA no devolvió respuesta. Intenta de nuevo."); e.status = 502; throw e; }
     return text;
   }
-  const e = new Error("Ningún modelo de Gemini está disponible (" + ultimo + "). Revisa MODEL en Cloudflare."); e.status = 502; throw e;
+  const e = new Error(ultimo === 503 || ultimo === 500 ? "La IA de Google está saturada en este momento. Intenta de nuevo en un minuto." : "Ningún modelo de Gemini está disponible (" + ultimo + "). Revisa MODEL en Cloudflare."); e.status = 502; throw e;
 }
 
 export default {

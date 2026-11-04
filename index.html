@@ -1808,7 +1808,7 @@ function renderHist(){
     grid,h("p",{class:"small muted"},"Cada cuadro es un día; más color, más ejercicios verificados. El de borde es hoy.")));
 }
 /* ============ SERVIDOR DE IA (Cloudflare Worker + Gemini) ============ */
-const AI_URL_DEFAULT="";
+const AI_URL_DEFAULT="https://vibravoice-ia.ferminbosquezmc.workers.dev";
 const AI_URL=(()=>{let o="";try{o=localStorage.getItem("vv12d-ai-url")||""}catch(e){}return (o||AI_URL_DEFAULT).trim().replace(/\/+$/,"")})();
 async function aiPost(path,body){
   let r;try{r=await fetch(AI_URL+path,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)})}

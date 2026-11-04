@@ -1,0 +1,9 @@
+# Configuración del servidor de IA de VibraVoice para Cloudflare Workers.
+# Cloudflare lo despliega solo desde GitHub (carpeta raíz: servidor).
+name = "vibravoice-ia"
+main = "worker.js"
+compatibility_date = "2026-10-01"
+workers_dev = true
+
+[vars]
+MODEL = "gemini-2.5-flash"

@@ -23,7 +23,7 @@ El Worker `vibravoice-ia` está conectado a este repositorio (rama `main`, carpe
 
 ## Variables opcionales
 
-- `MODEL`: modelo de Gemini (por defecto `gemini-2.5-flash`).
+- `MODEL`: modelo de Gemini (por defecto `gemini-flash-latest`, con modelos de respaldo si no está disponible).
 - `ALLOWED_ORIGINS`: sitios que pueden usar el servidor, separados por coma. Por defecto solo la app publicada en GitHub Pages.
 
 ## Notas

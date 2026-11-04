@@ -3,7 +3,7 @@
 //         POST /analizar  → análisis de una grabación (audio WAV + medidas locales)
 //         POST /lectura   → lectura del mapa vocal y ruta de la semana
 // Secreto requerido: GEMINI_API_KEY (Google AI Studio).
-// Variables opcionales: MODEL (por defecto gemini-2.5-flash), ALLOWED_ORIGINS (separadas por coma).
+// Variables opcionales: MODEL (si falta, usa gemini-flash-latest y modelos de respaldo), ALLOWED_ORIGINS (separadas por coma).
 
 const DEFAULT_ORIGINS = "https://ferminbosquezmc-debug.github.io,http://localhost:8000,http://127.0.0.1:8000";
 const MAX_AUDIO_B64 = 8_000_000; // ≈ 6 MB de audio; 45 s en WAV 16 kHz mono ocupan ≈ 1,4 MB
@@ -49,23 +49,29 @@ function cors(origin, env) {
 const json = (obj, status, headers) => new Response(JSON.stringify(obj), { status, headers: { ...headers, "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" } });
 const clip = (t, n) => String(t ?? "").slice(0, n);
 
+const MODELOS = ["gemini-flash-latest", "gemini-3.8-flash", "gemini-3.6-flash", "gemini-3.5-flash-lite", "gemini-flash-lite-latest"];
+
 async function gemini(env, system, contents, maxTokens) {
-  const model = env.MODEL || "gemini-2.5-flash";
-  const generationConfig = { temperature: 0.6, maxOutputTokens: maxTokens };
-  if (model.startsWith("gemini-2.5-flash")) generationConfig.thinkingConfig = { thinkingBudget: 0 };
-  const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json", "x-goog-api-key": env.GEMINI_API_KEY },
-    body: JSON.stringify({ systemInstruction: { parts: [{ text: system }] }, contents, generationConfig }),
-  });
-  const data = await r.json().catch(() => ({}));
-  if (!r.ok) {
-    const e = new Error(r.status === 429 ? "Se alcanzó el límite gratuito de la IA por ahora. Intenta en unos minutos." : "La IA no pudo responder (" + r.status + ").");
-    e.status = r.status === 429 ? 429 : 502; throw e;
+  const lista = [...new Set([env.MODEL, ...MODELOS].filter(Boolean))];
+  let ultimo = null;
+  for (const model of lista) {
+    const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "x-goog-api-key": env.GEMINI_API_KEY },
+      body: JSON.stringify({ systemInstruction: { parts: [{ text: system }] }, contents, generationConfig: { temperature: 0.6, maxOutputTokens: maxTokens } }),
+    });
+    const data = await r.json().catch(() => ({}));
+    if (r.status === 404 || (r.status === 400 && /model/i.test(data?.error?.message || ""))) { ultimo = r.status; continue; } // modelo no disponible: probar el siguiente
+    if (!r.ok) {
+      const e = new Error(r.status === 429 ? "Se alcanzó el límite gratuito de la IA por ahora. Intenta en unos minutos." :
+        (r.status === 400 || r.status === 401 || r.status === 403) ? "La clave de Gemini no es válida o no tiene permiso. Revísala en Cloudflare." : "La IA no pudo responder (" + r.status + ").");
+      e.status = r.status === 429 ? 429 : 502; throw e;
+    }
+    const text = (data.candidates?.[0]?.content?.parts || []).filter(p => !p.thought).map(p => p.text || "").join("").trim();
+    if (!text) { const e = new Error("La IA no devolvió respuesta. Intenta de nuevo."); e.status = 502; throw e; }
+    return text;
   }
-  const text = (data.candidates?.[0]?.content?.parts || []).map(p => p.text || "").join("").trim();
-  if (!text) { const e = new Error("La IA no devolvió respuesta. Intenta de nuevo."); e.status = 502; throw e; }
-  return text;
+  const e = new Error("Ningún modelo de Gemini está disponible (" + ultimo + "). Revisa MODEL en Cloudflare."); e.status = 502; throw e;
 }
 
 export default {

@@ -17,6 +17,10 @@ Corre gratis en Cloudflare Workers y usa Gemini de Google con su nivel gratuito.
 5. **Guardar la clave:** en el Worker ve a *Settings → Variables and Secrets → Add*. Elige tipo *Secret*, nombre `GEMINI_API_KEY`, pega la clave y guarda.
 6. **Copiar la dirección:** arriba aparece algo como `https://vibravoice-ia.TU-USUARIO.workers.dev`. Esa dirección se pone en `AI_URL_DEFAULT` dentro de `index.html`.
 
+## Despliegue automático
+
+El Worker `vibravoice-ia` está conectado a este repositorio (rama `main`, carpeta `servidor`). Cada cambio en esta carpeta se publica solo en https://vibravoice-ia.ferminbosquezmc.workers.dev.
+
 ## Variables opcionales
 
 - `MODEL`: modelo de Gemini (por defecto `gemini-2.5-flash`).
